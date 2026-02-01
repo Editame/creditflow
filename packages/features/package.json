@@ -1,0 +1,23 @@
+{
+  "name": "@creditflow/features",
+  "version": "1.0.0",
+  "description": "Sistema de control de features/módulos",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["creditflow", "features", "typescript"],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@creditflow/shared-types": "file:../shared-types",
+    "@creditflow/licensing": "file:../licensing"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.3"
+  }
+}

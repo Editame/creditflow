@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output
+
+# Production
+build/
+dist/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Keys (IMPORTANTE)
+keys/private.pem
+config/license.key
+*.pem
+*.key
+
+# Prisma
+prisma/migrations/**/migration.sql
+
+# Next.js
+.next/
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
