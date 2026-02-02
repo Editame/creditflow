@@ -1,5 +1,4 @@
 import { verify, JwtPayload } from 'jsonwebtoken';
-import { readFileSync } from 'fs';
 import { 
   SignedLicense, 
   LicenseValidationResult, 
@@ -9,8 +8,8 @@ import {
 export class LicenseValidator {
   private publicKey: string;
   
-  constructor(publicKeyPath: string) {
-    this.publicKey = readFileSync(publicKeyPath, 'utf8');
+  constructor(publicKey: string) {
+    this.publicKey = publicKey;
   }
   
   validate(license: SignedLicense): LicenseValidationResult {

@@ -1,152 +1,171 @@
-import { FrecuenciaPago, EstadoPrestamo } from '../enums';
+import { PaymentFrequency, LoanStatus } from '../enums';
 
 // ============================================
-// CLIENTE
+// CLIENT
 // ============================================
 
-export interface Cliente {
+export interface Client {
   id: number;
   tenantId: string;
-  rutaId: number;
-  cedula: string;
-  nombreCompleto: string;
-  telefono: string | null;
-  direccion: string | null;
-  urlFotoCedula: string | null;
-  activo: boolean;
+  routeId: number;
+  idNumber: string;
+  fullName: string;
+  phone: string | null;
+  address: string | null;
+  idPhotoUrl: string | null;
+  active: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface CreateClienteDto {
-  rutaId: number;
-  cedula: string;
-  nombreCompleto: string;
-  telefono?: string;
-  direccion?: string;
-  urlFotoCedula?: string;
+export interface CreateClientDto {
+  routeId: number;
+  idNumber: string;
+  fullName: string;
+  phone?: string;
+  address?: string;
+  idPhotoUrl?: string;
 }
 
-export interface UpdateClienteDto {
-  rutaId?: number;
-  cedula?: string;
-  nombreCompleto?: string;
-  telefono?: string;
-  direccion?: string;
-  urlFotoCedula?: string;
-  activo?: boolean;
+export interface UpdateClientDto {
+  routeId?: number;
+  idNumber?: string;
+  fullName?: string;
+  phone?: string;
+  address?: string;
+  idPhotoUrl?: string;
+  active?: boolean;
 }
 
 // ============================================
-// PRÉSTAMO
+// LOAN
 // ============================================
 
-export interface Prestamo {
+export interface Loan {
   id: number;
   tenantId: string;
-  clienteId: number;
-  montoPrestado: number;
-  tasaInteres: number;
-  frecuenciaPago: FrecuenciaPago;
-  valorCuota: number;
-  saldoPendiente: number;
-  fechaInicio: Date;
-  fechaFin: Date;
-  estado: EstadoPrestamo;
+  clientId: number;
+  loanAmount: number;
+  interestRate: number;
+  paymentFrequency: PaymentFrequency;
+  installmentValue: number;
+  pendingBalance: number;
+  startDate: Date;
+  endDate: Date;
+  status: LoanStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface CreatePrestamoDto {
-  clienteId: number;
-  montoPrestado: number;
-  tasaInteres: number;
-  frecuenciaPago: FrecuenciaPago;
-  valorCuota: number;
-  fechaInicio: string; // ISO date
+export interface CreateLoanDto {
+  clientId: number;
+  loanAmount: number;
+  interestRate: number;
+  paymentFrequency: PaymentFrequency;
+  installmentValue: number;
+  startDate: string;
 }
 
-export interface PrestamoWithRelations extends Prestamo {
-  cliente: Cliente;
-  pagos: Pago[];
+export interface LoanWithRelations extends Loan {
+  client: Client;
+  payments: Payment[];
 }
 
 // ============================================
-// PAGO
+// PAYMENT
 // ============================================
 
-export interface Pago {
+export interface Payment {
   id: number;
   tenantId: string;
-  prestamoId: number;
-  cobradorId: number;
-  rutaId: number;
-  montoPagado: number;
-  fechaPago: Date;
-  observaciones: string | null;
+  loanId: number;
+  collectorId: number;
+  routeId: number;
+  paidAmount: number;
+  paymentDate: Date;
+  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface CreatePagoDto {
-  prestamoId: number;
-  montoPagado: number;
-  observaciones?: string;
+export interface CreatePaymentDto {
+  loanId: number;
+  paidAmount: number;
+  notes?: string;
 }
 
-export interface PagoWithRelations extends Pago {
-  prestamo: Prestamo;
-  cobrador: {
+export interface PaymentWithRelations extends Payment {
+  loan: Loan;
+  collector: {
     id: number;
     username: string;
   };
 }
 
 // ============================================
-// RUTA
+// ROUTE
 // ============================================
 
-export interface Ruta {
+export interface Route {
   id: number;
   tenantId: string;
-  nombre: string;
-  descripcion: string | null;
-  activo: boolean;
+  name: string;
+  description: string | null;
+  active: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface CreateRutaDto {
-  nombre: string;
-  descripcion?: string;
+export interface CreateRouteDto {
+  name: string;
+  description?: string;
 }
 
-export interface UpdateRutaDto {
-  nombre?: string;
-  descripcion?: string;
-  activo?: boolean;
+export interface UpdateRouteDto {
+  name?: string;
+  description?: string;
+  active?: boolean;
 }
 
 // ============================================
-// GASTO
+// EXPENSE
 // ============================================
 
-export interface Gasto {
+export interface Expense {
   id: number;
   tenantId: string;
-  rutaId: number;
-  monto: number;
-  descripcion: string;
-  categoria: string | null;
-  fecha: Date;
+  routeId: number;
+  amount: number;
+  description: string;
+  category: string | null;
+  date: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface CreateGastoDto {
-  rutaId: number;
-  monto: number;
-  descripcion: string;
-  categoria?: string;
-  fecha?: string; // ISO date
+export interface CreateExpenseDto {
+  routeId: number;
+  amount: number;
+  description: string;
+  category?: string;
+  date?: string;
 }
+
+// ============================================
+// LEGACY ALIASES (for backward compatibility)
+// ============================================
+
+export type Cliente = Client;
+export type CreateClienteDto = CreateClientDto;
+export type UpdateClienteDto = UpdateClientDto;
+export type Prestamo = Loan;
+export type CreatePrestamoDto = CreateLoanDto;
+export type PrestamoWithRelations = LoanWithRelations;
+export type Pago = Payment;
+export type CreatePagoDto = CreatePaymentDto;
+export type PagoWithRelations = PaymentWithRelations;
+export type Ruta = Route;
+export type CreateRutaDto = CreateRouteDto;
+export type UpdateRutaDto = UpdateRouteDto;
+export type Gasto = Expense;
+export type CreateGastoDto = CreateExpenseDto;

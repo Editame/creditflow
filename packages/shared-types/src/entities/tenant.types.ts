@@ -28,7 +28,7 @@ export interface TenantWithCounts extends Tenant {
 }
 
 export interface CreateTenantDto {
-  nombre: string;
+  name: string;
   slug: string;
   plan: Plan;
   contactEmail: string;

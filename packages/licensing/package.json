@@ -9,15 +9,19 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
-  "keywords": ["creditflow", "licensing", "typescript"],
+  "keywords": [
+    "creditflow",
+    "licensing",
+    "typescript"
+  ],
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
     "@creditflow/shared-types": "file:../shared-types",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.7",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.3"
   }

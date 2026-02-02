@@ -38,20 +38,20 @@ export class LicenseGenerator {
   
   private getModulesByPlan(plan: Plan): FeatureModule[] {
     const baseModules: FeatureModule[] = [
-      FeatureModule.CLIENTES_BASIC,
-      FeatureModule.PRESTAMOS_BASIC,
-      FeatureModule.PAGOS_BASIC,
-      FeatureModule.RUTAS_BASIC,
+      FeatureModule.CLIENTS_BASIC,
+      FeatureModule.LOANS_BASIC,
+      FeatureModule.PAYMENTS_BASIC,
+      FeatureModule.ROUTES_BASIC,
     ];
     
     const professionalModules: FeatureModule[] = [
       ...baseModules,
-      FeatureModule.GASTOS,
-      FeatureModule.REPORTES_ADVANCED,
-      FeatureModule.USUARIOS_MANAGEMENT,
+      FeatureModule.EXPENSES,
+      FeatureModule.REPORTS_ADVANCED,
+      FeatureModule.USERS_MANAGEMENT,
       FeatureModule.API_REST,
       FeatureModule.EXPORT_EXCEL,
-      FeatureModule.CONCEPTOS_CUSTOM,
+      FeatureModule.CUSTOM_CONCEPTS,
     ];
     
     const enterpriseModules: FeatureModule[] = [
@@ -65,9 +65,9 @@ export class LicenseGenerator {
     ];
     
     const planModules: Record<Plan, FeatureModule[]> = {
-      [Plan.BASICO]: baseModules,
-      [Plan.PROFESIONAL]: professionalModules,
-      [Plan.EMPRESARIAL]: enterpriseModules,
+      [Plan.BASIC]: baseModules,
+      [Plan.PROFESSIONAL]: professionalModules,
+      [Plan.ENTERPRISE]: enterpriseModules,
     };
     
     return planModules[plan];
@@ -75,17 +75,17 @@ export class LicenseGenerator {
   
   private getLimitsByPlan(plan: Plan): LicenseLimits {
     const planLimits: Record<Plan, LicenseLimits> = {
-      [Plan.BASICO]: {
+      [Plan.BASIC]: {
         maxRutas: 1,
         maxClientes: 100,
         maxUsuarios: 2,
       },
-      [Plan.PROFESIONAL]: {
+      [Plan.PROFESSIONAL]: {
         maxRutas: 5,
         maxClientes: 500,
         maxUsuarios: 10,
       },
-      [Plan.EMPRESARIAL]: {
+      [Plan.ENTERPRISE]: {
         maxRutas: 999,
         maxClientes: 9999,
         maxUsuarios: 100,

@@ -6,46 +6,46 @@ export enum DeploymentMode {
 }
 
 export enum Plan {
-  BASICO = 'BASICO',
-  PROFESIONAL = 'PROFESIONAL',
-  EMPRESARIAL = 'EMPRESARIAL',
+  BASIC = 'BASIC',
+  PROFESSIONAL = 'PROFESSIONAL',
+  ENTERPRISE = 'ENTERPRISE',
 }
 
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
   SUPERVISOR = 'SUPERVISOR',
-  COBRADOR = 'COBRADOR',
-  CONTADOR = 'CONTADOR',
+  COLLECTOR = 'COLLECTOR',
+  ACCOUNTANT = 'ACCOUNTANT',
 }
 
-export enum FrecuenciaPago {
-  DIARIO = 'DIARIO',
-  SEMANAL = 'SEMANAL',
+export enum PaymentFrequency {
+  DAILY = 'DAILY',
+  WEEKLY = 'WEEKLY',
 }
 
-export enum EstadoPrestamo {
-  ACTIVO = 'ACTIVO',
-  PAGADO = 'PAGADO',
-  MORA = 'MORA',
+export enum LoanStatus {
+  ACTIVE = 'ACTIVE',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
 }
 
 export enum FeatureModule {
-  // Módulos base
-  CLIENTES_BASIC = 'CLIENTES_BASIC',
-  PRESTAMOS_BASIC = 'PRESTAMOS_BASIC',
-  PAGOS_BASIC = 'PAGOS_BASIC',
-  RUTAS_BASIC = 'RUTAS_BASIC',
+  // Base modules
+  CLIENTS_BASIC = 'CLIENTS_BASIC',
+  LOANS_BASIC = 'LOANS_BASIC',
+  PAYMENTS_BASIC = 'PAYMENTS_BASIC',
+  ROUTES_BASIC = 'ROUTES_BASIC',
   
-  // Módulos profesionales
-  GASTOS = 'GASTOS',
-  REPORTES_ADVANCED = 'REPORTES_ADVANCED',
-  USUARIOS_MANAGEMENT = 'USUARIOS_MANAGEMENT',
+  // Professional modules
+  EXPENSES = 'EXPENSES',
+  REPORTS_ADVANCED = 'REPORTS_ADVANCED',
+  USERS_MANAGEMENT = 'USERS_MANAGEMENT',
   API_REST = 'API_REST',
   EXPORT_EXCEL = 'EXPORT_EXCEL',
-  CONCEPTOS_CUSTOM = 'CONCEPTOS_CUSTOM',
+  CUSTOM_CONCEPTS = 'CUSTOM_CONCEPTS',
   
-  // Módulos enterprise
+  // Enterprise modules
   WHITE_LABEL = 'WHITE_LABEL',
   CUSTOM_DOMAIN = 'CUSTOM_DOMAIN',
   WEBHOOKS = 'WEBHOOKS',
@@ -60,3 +60,9 @@ export enum SubscriptionStatus {
   PAST_DUE = 'PAST_DUE',
   TRIALING = 'TRIALING',
 }
+
+// Legacy aliases for backward compatibility
+export const FrecuenciaPago = PaymentFrequency;
+export const EstadoPrestamo = LoanStatus;
+export type FrecuenciaPago = PaymentFrequency;
+export type EstadoPrestamo = LoanStatus;
