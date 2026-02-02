@@ -9,6 +9,15 @@ import { ClientesModule } from './clientes/clientes.module';
 import { PrestamosModule } from './prestamos/prestamos.module';
 import { PagosModule } from './pagos/pagos.module';
 import { GastosModule } from './gastos/gastos.module';
+import { TenantsModule } from './tenants/tenants.module';
+import { LicenseModule } from './license/license.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
+import { ChargeConceptsModule } from './charge-concepts/charge-concepts.module';
+import { ConceptosCobroModule } from './conceptos-cobro/conceptos-cobro.module';
+import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -18,6 +27,15 @@ import { GastosModule } from './gastos/gastos.module';
     }),
     DatabaseModule,
     AuthModule,
+    TenantsModule,
+    LicenseModule,
+    UsuariosModule,
+    ChargeConceptsModule,
+    ConceptosCobroModule,
+    RolesModule,
+    PermissionsModule,
+    DashboardModule,
+    ReportsModule,
     RutasModule,
     ClientesModule,
     PrestamosModule,

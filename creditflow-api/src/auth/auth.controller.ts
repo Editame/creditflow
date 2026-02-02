@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from '../common';
-import type { LoginDto, AuthResponse, Usuario } from '@creditflow/shared-types';
+import type { LoginDto, AuthResponse } from '@creditflow/shared-types';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -24,7 +24,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  async getProfile(@CurrentUser() user: { id: number }): Promise<{ success: boolean; data: Usuario }> {
+  async getProfile(@CurrentUser() user: { id: number }) {
     const data = await this.authService.getProfile(user.id);
     return {
       success: true,

@@ -14,12 +14,12 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<AuthResponse> {
     const { username, password } = loginDto;
 
-    const user = await this.prisma.usuario.findFirst({
-      where: { username, activo: true },
+    const user = await this.prisma.user.findFirst({
+      where: { username, active: true },
       include: { tenant: true },
     });
 
-    if (!user || !user.tenant.activo) {
+    if (!user || !user.tenant.active) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -28,7 +28,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    await this.prisma.usuario.update({
+    await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     });
@@ -47,8 +47,8 @@ export class AuthService {
         tenantId: user.tenantId,
         username: user.username,
         email: user.email,
-        role: user.role,
-        activo: user.activo,
+        role: user.role as any,
+        activo: user.active,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         lastLogin: user.lastLogin,
@@ -57,7 +57,7 @@ export class AuthService {
   }
 
   async getProfile(userId: number) {
-    const user = await this.prisma.usuario.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
@@ -71,7 +71,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       role: user.role,
-      activo: user.activo,
+      activo: user.active,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastLogin: user.lastLogin,

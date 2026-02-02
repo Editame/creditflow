@@ -14,22 +14,22 @@ interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private config: ConfigService,
+    _config: ConfigService,
     private prisma: PrismaService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.get<string>('JWT_SECRET'),
+      secretOrKey: _config.get<string>('JWT_SECRET')!,
     });
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.prisma.usuario.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: { tenant: true },
     });
 
-    if (!user || !user.activo || !user.tenant.activo) {
+    if (!user || !user.active || !user.tenant.active) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
