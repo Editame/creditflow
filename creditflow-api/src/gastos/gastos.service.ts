@@ -8,22 +8,22 @@ export class GastosService {
   constructor(private prisma: PrismaService) {}
 
   async create(tenantId: string, createGastoDto: CreateGastoDto) {
-    const ruta = await this.prisma.ruta.findFirst({
-      where: { id: createGastoDto.rutaId, tenantId },
+    const ruta = await this.prisma.route.findFirst({
+      where: { id: createGastoDto.routeId, tenantId },
     });
 
     if (!ruta) {
-      throw new NotFoundException('Ruta not found');
+      throw new NotFoundException('Route not found');
     }
 
-    return this.prisma.gasto.create({
+    return this.prisma.expense.create({
       data: {
         tenantId,
-        rutaId: createGastoDto.rutaId,
-        monto: createGastoDto.monto,
-        descripcion: createGastoDto.descripcion,
-        categoria: createGastoDto.categoria,
-        fecha: createGastoDto.fecha ? new Date(createGastoDto.fecha) : new Date(),
+        routeId: createGastoDto.routeId,
+        amount: createGastoDto.amount,
+        description: createGastoDto.description,
+        category: createGastoDto.category,
+        date: createGastoDto.date ? new Date(createGastoDto.date) : new Date(),
       },
     });
   }
@@ -32,33 +32,33 @@ export class GastosService {
     const { skip, take } = getPaginationParams(filters);
     
     const where: Record<string, unknown> = { tenantId };
-    if (filters.rutaId) where.rutaId = filters.rutaId;
-    if (filters.categoria) where.categoria = filters.categoria;
+    if (filters.rutaId) where.routeId = filters.rutaId;
+    if (filters.categoria) where.category = filters.categoria;
 
     const [data, total] = await Promise.all([
-      this.prisma.gasto.findMany({
+      this.prisma.expense.findMany({
         where,
         skip,
         take,
-        include: { ruta: true },
-        orderBy: { fecha: 'desc' },
+        include: { route: true },
+        orderBy: { date: 'desc' },
       }),
-      this.prisma.gasto.count({ where }),
+      this.prisma.expense.count({ where }),
     ]);
 
     return createPaginatedResponse(data, total, filters);
   }
 
   async remove(tenantId: string, id: number) {
-    const gasto = await this.prisma.gasto.findFirst({
+    const gasto = await this.prisma.expense.findFirst({
       where: { id, tenantId },
     });
 
     if (!gasto) {
-      throw new NotFoundException('Gasto not found');
+      throw new NotFoundException('Expense not found');
     }
 
-    return this.prisma.gasto.delete({
+    return this.prisma.expense.delete({
       where: { id },
     });
   }

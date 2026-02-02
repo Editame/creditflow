@@ -8,20 +8,24 @@ export class ClientesService {
   constructor(private prisma: PrismaService) {}
 
   async create(tenantId: string, createClienteDto: CreateClienteDto) {
-    const existing = await this.prisma.cliente.findUnique({
-      where: { tenantId_cedula: { tenantId, cedula: createClienteDto.cedula } },
+    const existing = await this.prisma.client.findUnique({
+      where: { tenantId_idNumber: { tenantId, idNumber: createClienteDto.idNumber } },
     });
 
     if (existing) {
-      throw new ConflictException('Cliente con esta cédula ya existe');
+      throw new ConflictException('Client with this ID number already exists');
     }
 
-    return this.prisma.cliente.create({
+    return this.prisma.client.create({
       data: {
-        ...createClienteDto,
         tenantId,
+        idNumber: createClienteDto.idNumber,
+        fullName: createClienteDto.fullName,
+        phone: createClienteDto.phone,
+        address: createClienteDto.address,
+        routeId: createClienteDto.routeId,
       },
-      include: { ruta: true },
+      include: { route: true },
     });
   }
 
@@ -29,42 +33,42 @@ export class ClientesService {
     const { skip, take } = getPaginationParams(filters);
     
     const where: Record<string, unknown> = { tenantId };
-    if (filters.rutaId) where.rutaId = filters.rutaId;
+    if (filters.rutaId) where.routeId = filters.rutaId;
     if (filters.search) {
       where.OR = [
-        { nombreCompleto: { contains: filters.search, mode: 'insensitive' } },
-        { cedula: { contains: filters.search } },
+        { fullName: { contains: filters.search, mode: 'insensitive' } },
+        { idNumber: { contains: filters.search } },
       ];
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.cliente.findMany({
+      this.prisma.client.findMany({
         where,
         skip,
         take,
         include: {
-          ruta: true,
-          prestamos: {
-            where: { estado: 'ACTIVO' },
+          route: true,
+          loans: {
+            where: { status: 'ACTIVE' },
           },
         },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.cliente.count({ where }),
+      this.prisma.client.count({ where }),
     ]);
 
     return createPaginatedResponse(data, total, filters);
   }
 
   async findOne(tenantId: string, id: number) {
-    const cliente = await this.prisma.cliente.findFirst({
+    const cliente = await this.prisma.client.findFirst({
       where: { id, tenantId },
       include: {
-        ruta: true,
-        prestamos: {
+        route: true,
+        loans: {
           include: {
-            pagos: {
-              orderBy: { fechaPago: 'desc' },
+            payments: {
+              orderBy: { paymentDate: 'desc' },
               take: 10,
             },
           },
@@ -73,7 +77,7 @@ export class ClientesService {
     });
 
     if (!cliente) {
-      throw new NotFoundException(`Cliente with ID ${id} not found`);
+      throw new NotFoundException(`Client with ID ${id} not found`);
     }
 
     return cliente;
@@ -81,16 +85,21 @@ export class ClientesService {
 
   async update(tenantId: string, id: number, updateClienteDto: UpdateClienteDto) {
     await this.findOne(tenantId, id);
-    return this.prisma.cliente.update({
+    return this.prisma.client.update({
       where: { id },
-      data: updateClienteDto,
-      include: { ruta: true },
+      data: {
+        ...(updateClienteDto.fullName && { fullName: updateClienteDto.fullName }),
+        ...(updateClienteDto.phone && { phone: updateClienteDto.phone }),
+        ...(updateClienteDto.address && { address: updateClienteDto.address }),
+        ...(updateClienteDto.routeId && { routeId: updateClienteDto.routeId }),
+      },
+      include: { route: true },
     });
   }
 
   async remove(tenantId: string, id: number) {
     await this.findOne(tenantId, id);
-    return this.prisma.cliente.delete({
+    return this.prisma.client.delete({
       where: { id },
     });
   }
