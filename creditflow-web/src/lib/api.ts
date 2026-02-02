@@ -61,107 +61,109 @@ class ApiClient {
   }
 
   // Auth
-  async login(credentials: LoginDto): Promise<AuthResponse> {
-    const { data } = await this.client.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
-    return data.data;
-  }
-
-  async getProfile(): Promise<Usuario> {
-    const { data } = await this.client.get<ApiResponse<Usuario>>('/auth/profile');
-    return data.data;
-  }
+  auth = {
+    login: async (credentials: LoginDto): Promise<AuthResponse> => {
+      const { data } = await this.client.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
+      return data.data;
+    },
+    getProfile: async (): Promise<Usuario> => {
+      const { data } = await this.client.get<ApiResponse<Usuario>>('/auth/profile');
+      return data.data;
+    },
+  };
 
   // Rutas
-  async getRutas(params?: PaginationParams): Promise<PaginatedResponse<Ruta>> {
-    const { data } = await this.client.get<PaginatedResponse<Ruta>>('/rutas', { params });
-    return data;
-  }
-
-  async getRuta(id: number): Promise<Ruta> {
-    const { data } = await this.client.get<Ruta>(`/rutas/${id}`);
-    return data;
-  }
-
-  async createRuta(dto: CreateRutaDto): Promise<Ruta> {
-    const { data } = await this.client.post<Ruta>('/rutas', dto);
-    return data;
-  }
-
-  async updateRuta(id: number, dto: UpdateRutaDto): Promise<Ruta> {
-    const { data } = await this.client.patch<Ruta>(`/rutas/${id}`, dto);
-    return data;
-  }
-
-  async deleteRuta(id: number): Promise<void> {
-    await this.client.delete(`/rutas/${id}`);
-  }
+  rutas = {
+    getAll: async (params?: PaginationParams): Promise<Ruta[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Ruta>>('/rutas', { params });
+      return data.data;
+    },
+    getOne: async (id: number): Promise<Ruta> => {
+      const { data } = await this.client.get<Ruta>(`/rutas/${id}`);
+      return data;
+    },
+    create: async (dto: CreateRutaDto): Promise<Ruta> => {
+      const { data } = await this.client.post<Ruta>('/rutas', dto);
+      return data;
+    },
+    update: async (id: number, dto: UpdateRutaDto): Promise<Ruta> => {
+      const { data } = await this.client.patch<Ruta>(`/rutas/${id}`, dto);
+      return data;
+    },
+    delete: async (id: number): Promise<void> => {
+      await this.client.delete(`/rutas/${id}`);
+    },
+  };
 
   // Clientes
-  async getClientes(filters?: FilterClienteDto): Promise<PaginatedResponse<Cliente>> {
-    const { data } = await this.client.get<PaginatedResponse<Cliente>>('/clientes', { params: filters });
-    return data;
-  }
-
-  async getCliente(id: number): Promise<Cliente> {
-    const { data } = await this.client.get<Cliente>(`/clientes/${id}`);
-    return data;
-  }
-
-  async createCliente(dto: CreateClienteDto): Promise<Cliente> {
-    const { data } = await this.client.post<Cliente>('/clientes', dto);
-    return data;
-  }
-
-  async updateCliente(id: number, dto: UpdateClienteDto): Promise<Cliente> {
-    const { data } = await this.client.patch<Cliente>(`/clientes/${id}`, dto);
-    return data;
-  }
-
-  async deleteCliente(id: number): Promise<void> {
-    await this.client.delete(`/clientes/${id}`);
-  }
+  clientes = {
+    getAll: async (filters?: FilterClienteDto): Promise<Cliente[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Cliente>>('/clientes', { params: filters });
+      return data.data;
+    },
+    getOne: async (id: number): Promise<Cliente> => {
+      const { data } = await this.client.get<Cliente>(`/clientes/${id}`);
+      return data;
+    },
+    create: async (dto: CreateClienteDto): Promise<Cliente> => {
+      const { data } = await this.client.post<Cliente>('/clientes', dto);
+      return data;
+    },
+    update: async (id: number, dto: UpdateClienteDto): Promise<Cliente> => {
+      const { data } = await this.client.patch<Cliente>(`/clientes/${id}`, dto);
+      return data;
+    },
+    delete: async (id: number): Promise<void> => {
+      await this.client.delete(`/clientes/${id}`);
+    },
+  };
 
   // Prestamos
-  async getPrestamos(filters?: FilterPrestamoDto): Promise<PaginatedResponse<Prestamo>> {
-    const { data } = await this.client.get<PaginatedResponse<Prestamo>>('/prestamos', { params: filters });
-    return data;
-  }
-
-  async getPrestamo(id: number): Promise<Prestamo> {
-    const { data } = await this.client.get<Prestamo>(`/prestamos/${id}`);
-    return data;
-  }
-
-  async createPrestamo(dto: CreatePrestamoDto): Promise<Prestamo> {
-    const { data } = await this.client.post<Prestamo>('/prestamos', dto);
-    return data;
-  }
+  prestamos = {
+    getAll: async (filters?: FilterPrestamoDto): Promise<Prestamo[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Prestamo>>('/prestamos', { params: filters });
+      return data.data;
+    },
+    getOne: async (id: number): Promise<Prestamo> => {
+      const { data } = await this.client.get<Prestamo>(`/prestamos/${id}`);
+      return data;
+    },
+    create: async (dto: CreatePrestamoDto): Promise<Prestamo> => {
+      const { data } = await this.client.post<Prestamo>('/prestamos', dto);
+      return data;
+    },
+  };
 
   // Pagos
-  async getPagos(filters?: FilterPagoDto): Promise<PaginatedResponse<Pago>> {
-    const { data } = await this.client.get<PaginatedResponse<Pago>>('/pagos', { params: filters });
-    return data;
-  }
-
-  async createPago(dto: CreatePagoDto): Promise<Pago> {
-    const { data } = await this.client.post<Pago>('/pagos', dto);
-    return data;
-  }
+  pagos = {
+    getAll: async (filters?: FilterPagoDto): Promise<Pago[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Pago>>('/pagos', { params: filters });
+      return data.data;
+    },
+    create: async (dto: CreatePagoDto): Promise<Pago> => {
+      const { data } = await this.client.post<Pago>('/pagos', dto);
+      return data;
+    },
+  };
 
   // Gastos
-  async getGastos(filters?: FilterGastoDto): Promise<PaginatedResponse<Gasto>> {
-    const { data } = await this.client.get<PaginatedResponse<Gasto>>('/gastos', { params: filters });
-    return data;
-  }
-
-  async createGasto(dto: CreateGastoDto): Promise<Gasto> {
-    const { data } = await this.client.post<Gasto>('/gastos', dto);
-    return data;
-  }
-
-  async deleteGasto(id: number): Promise<void> {
-    await this.client.delete(`/gastos/${id}`);
-  }
+  gastos = {
+    getAll: async (filters?: FilterGastoDto): Promise<Gasto[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Gasto>>('/gastos', { params: filters });
+      return data.data;
+    },
+    create: async (dto: CreateGastoDto): Promise<Gasto> => {
+      const { data } = await this.client.post<Gasto>('/gastos', dto);
+      return data;
+    },
+    update: async (id: number, dto: Partial<CreateGastoDto>): Promise<Gasto> => {
+      const { data } = await this.client.patch<Gasto>(`/gastos/${id}`, dto);
+      return data;
+    },
+    delete: async (id: number): Promise<void> => {
+      await this.client.delete(`/gastos/${id}`);
+    },
+  };
 
   // Health check
   async healthCheck(): Promise<{ status: string; message: string }> {

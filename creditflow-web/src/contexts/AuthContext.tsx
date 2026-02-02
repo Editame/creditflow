@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const userData = await api.getProfile();
+      const userData = await api.auth.getProfile();
       setUser(userData);
     } catch (error) {
       Cookies.remove('token');
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (credentials: LoginDto): Promise<void> => {
-    const response = await api.login(credentials);
+    const response = await api.auth.login(credentials);
     Cookies.set('token', response.access_token, { expires: 7 });
     setUser(response.user);
     router.push('/dashboard');

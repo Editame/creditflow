@@ -1,90 +1,64 @@
 'use client';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Users, CreditCard, MapPin, DollarSign } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function DashboardPage() {
-  const { user, isLoading, logout } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isLoading, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
+  const stats = [
+    { icon: Users, label: 'Clientes', value: '0', color: 'text-primary-600', bg: 'bg-primary-50' },
+    { icon: CreditCard, label: 'Préstamos', value: '0', color: 'text-secondary-600', bg: 'bg-secondary-50' },
+    { icon: MapPin, label: 'Rutas', value: '0', color: 'text-purple-600', bg: 'bg-purple-50' },
+    { icon: DollarSign, label: 'Recaudado Hoy', value: '$0', color: 'text-green-600', bg: 'bg-green-50' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-6">
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">CreditFlow</h1>
-            <p className="text-sm text-gray-600">
-              Bienvenido, {user.username} ({user.role})
-            </p>
-          </div>
-          <button
-            onClick={logout}
-            className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
-          >
-            Cerrar Sesión
-          </button>
-        </div>
-      </header>
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Bienvenido, {user?.username}
+        </h1>
+        <p className="text-gray-600 mt-1">Rol: {user?.role}</p>
+      </div>
 
-      {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Card 1 */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">Clientes</h2>
-            <p className="mt-2 text-3xl font-bold text-blue-600">0</p>
-            <p className="mt-1 text-sm text-gray-600">Total de clientes</p>
-          </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.label} padding="md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                </div>
+                <div className={`p-3 rounded-lg ${stat.bg}`}>
+                  <Icon className={stat.color} size={24} />
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
 
-          {/* Card 2 */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">Préstamos</h2>
-            <p className="mt-2 text-3xl font-bold text-green-600">0</p>
-            <p className="mt-1 text-sm text-gray-600">Préstamos activos</p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">Rutas</h2>
-            <p className="mt-2 text-3xl font-bold text-purple-600">0</p>
-            <p className="mt-1 text-sm text-gray-600">Rutas activas</p>
-          </div>
-        </div>
-
-        {/* Info Section */}
-        <div className="mt-8 rounded-lg bg-white p-6 shadow">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Sistema Configurado ✅
-          </h2>
-          <div className="mt-4 space-y-2 text-sm text-gray-600">
+      {/* Info Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Sistema Configurado ✅</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm text-gray-600">
             <p>✅ Frontend conectado</p>
             <p>✅ Autenticación funcionando</p>
-            <p>✅ Usuario: {user.username}</p>
-            <p>✅ Rol: {user.role}</p>
-            <p>✅ Tenant ID: {user.tenantId}</p>
+            <p>✅ Usuario: {user?.username}</p>
+            <p>✅ Rol: {user?.role}</p>
+            <p>✅ Tenant ID: {user?.tenantId}</p>
           </div>
-        </div>
-      </main>
+        </CardContent>
+      </Card>
     </div>
   );
 }
