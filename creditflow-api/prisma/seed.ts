@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
+import { seedRolesAndPermissions } from './seed-roles';
 
 dotenv.config();
 
@@ -12,6 +13,9 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // Seed roles y permisos primero
+  await seedRolesAndPermissions();
 
   // Crear usuario SUPER_ADMIN (sin tenant - es el maestro del sistema)
   const hashedPassword = await bcrypt.hash('admin123', 10);
