@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { prestamosApi, Prestamo, Pago } from '@/lib/api';
+import { prestamosApi } from '@/lib/api';
 import { formatTimeInTimezone, formatDateShort, formatBusinessDate } from '@/lib/timezone';
 import {
   ArrowLeft,
   DollarSign,
-  Calendar,
   User,
   Clock,
   CheckCircle,
@@ -22,19 +21,19 @@ export default function PrestamoDetallePage() {
   const params = useParams();
   const prestamoId = parseInt(params.id as string);
   
-  const [prestamo, setPrestamo] = useState<Prestamo | null>(null);
-  const [pagos, setPagos] = useState<Pago[]>([]);
+  const [prestamo, setPrestamo] = useState<any | null>(null);
+  const [pagos, setPagos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await prestamosApi.getOne(prestamoId);
-        const prestamoData = res.data?.data || res.data;
+        const prestamoData = res as any;
         setPrestamo(prestamoData);
         
-        if (prestamoData?.pagos) {
-          setPagos(prestamoData.pagos);
+        if ((prestamoData as any)?.payments) {
+          setPagos((prestamoData as any).payments);
         }
       } catch (error) {
         console.error('Error fetching prestamo:', error);
@@ -91,10 +90,10 @@ export default function PrestamoDetallePage() {
     );
   }
 
-  const montoPrestado = Number(prestamo.montoPrestado) || 0;
-  const tasaInteres = Number(prestamo.tasaInteres) || 0;
+  const montoPrestado = Number(prestamo.loanAmount) || 0;
+  const tasaInteres = Number(prestamo.interestRate) || 0;
   const montoTotal = montoPrestado * (1 + tasaInteres / 100);
-  const saldoPendiente = Number(prestamo.saldoPendiente) || 0;
+  const saldoPendiente = Number(prestamo.pendingBalance) || 0;
   const montoPagado = montoTotal - saldoPendiente;
   const progreso = montoTotal > 0 ? (montoPagado / montoTotal) * 100 : 0;
 
@@ -174,13 +173,13 @@ export default function PrestamoDetallePage() {
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <span className="text-gray-500">Monto Prestado</span>
               <span className="font-semibold text-gray-900">
-                ${Number(prestamo.montoPrestado).toLocaleString()}
+                ${Number(prestamo.loanAmount).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <span className="text-gray-500">Tasa de Interés</span>
               <span className="font-semibold text-gray-900">
-                {Number(prestamo.tasaInteres)}%
+                {Number(prestamo.interestRate)}%
               </span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -192,25 +191,25 @@ export default function PrestamoDetallePage() {
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <span className="text-gray-500">Valor Cuota</span>
               <span className="font-semibold text-purple-600">
-                ${Number(prestamo.valorCuota).toLocaleString()}
+                ${Number(prestamo.installmentValue).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <span className="text-gray-500">Frecuencia</span>
               <span className="font-semibold text-gray-900">
-                {prestamo.frecuenciaPago === 'DIARIO' ? 'Diario' : 'Semanal'}
+                {prestamo.paymentFrequency === 'DAILY' ? 'Diario' : 'Semanal'}
               </span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-100">
               <span className="text-gray-500">Fecha Inicio</span>
               <span className="font-semibold text-gray-900">
-                {formatBusinessDate(prestamo.fechaInicio)}
+                {formatBusinessDate(prestamo.disbursementDate)}
               </span>
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-gray-500">Fecha Fin</span>
               <span className="font-semibold text-gray-900">
-                {formatBusinessDate(prestamo.fechaFin)}
+                {formatBusinessDate(prestamo.endDate)}
               </span>
             </div>
           </div>
@@ -220,7 +219,7 @@ export default function PrestamoDetallePage() {
           <div className="bg-white rounded-2xl shadow p-4">
             <h3 className="font-semibold text-gray-900 mb-3">Conceptos de Cobro</h3>
             <div className="space-y-2">
-              {prestamo.conceptosDescuento.map((descuento) => (
+              {prestamo.conceptosDescuento.map((descuento: any) => (
                 <div key={descuento.conceptoId} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                   <div className="flex flex-col">
                     <span className="font-medium text-gray-900">

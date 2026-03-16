@@ -49,14 +49,20 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        tenantId: user.tenantId || 'system',
+        tenantId: user.tenantId,
         username: user.username,
         email: user.email,
         role: user.role as any,
-        activo: user.active,
+        active: user.active,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         lastLogin: user.lastLogin,
+        tenant: user.tenant ? {
+          id: user.tenant.id,
+          name: user.tenant.name,
+          slug: user.tenant.slug,
+          plan: user.tenant.plan,
+        } : undefined,
       },
     };
   }
@@ -73,14 +79,20 @@ export class AuthService {
 
     return {
       id: user.id,
-      tenantId: user.tenantId || 'system',
+      tenantId: user.tenantId,
       username: user.username,
       email: user.email,
-      role: user.role,
-      activo: user.active,
+      role: user.role as any,
+      active: user.active,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastLogin: user.lastLogin,
+      tenant: user.tenant ? {
+        id: user.tenant.id,
+        name: user.tenant.name,
+        slug: user.tenant.slug,
+        plan: user.tenant.plan,
+      } : undefined,
     };
   }
 }

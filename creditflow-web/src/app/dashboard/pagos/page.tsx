@@ -29,7 +29,7 @@ export default function PagosPage() {
   const loadPagos = async () => {
     try {
       const response = await api.pagos.getAll();
-      setPagos(Array.isArray(response) ? response : response.data || []);
+      setPagos(response);
     } catch (error) {
       console.error('Error loading pagos:', error);
       setPagos([]);
@@ -42,8 +42,8 @@ export default function PagosPage() {
     e.preventDefault();
     try {
       await api.pagos.create({
-        ...formData,
-        monto: parseFloat(formData.monto),
+        loanId: parseInt(formData.prestamoId),
+        paidAmount: parseFloat(formData.monto),
       });
       resetForm();
       loadPagos();
@@ -69,7 +69,8 @@ export default function PagosPage() {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Pagos</h1>
-        <Button onClick={() => setShowForm(!showForm)} icon={Plus}>
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus className="w-4 h-4 mr-2" />
           Registrar Pago
         </Button>
       </div>
@@ -136,21 +137,21 @@ export default function PagosPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600" />
-                      <h3 className="font-semibold text-gray-900">Pago #{pago.id.slice(0, 8)}</h3>
+                      <h3 className="font-semibold text-gray-900">Pago #{pago.id.toString().slice(0, 8)}</h3>
                     </div>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Monto:</span>
-                      <span className="font-semibold text-green-600 text-lg">${pago.monto.toLocaleString()}</span>
+                      <span className="font-semibold text-green-600 text-lg">${Number((pago as any).amountPaid).toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <CreditCard className="w-4 h-4" />
-                      <span>{pago.metodoPago}</span>
+                      <span>{(pago as any).paidBy}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      <span>{new Date(pago.fechaPago).toLocaleDateString()}</span>
+                      <span>{new Date((pago as any).paymentDate).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>

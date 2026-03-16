@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { prestamosApi, conceptosCobroApi } from '@/lib/api';
+import { prestamosApi } from '@/lib/api';
 import { ArrowLeft, DollarSign, RefreshCw } from 'lucide-react';
 
 export default function RefinanciarPrestamoPage() {
@@ -11,9 +11,8 @@ export default function RefinanciarPrestamoPage() {
   const prestamoId = parseInt(params.id as string);
 
   const [prestamo, setPrestamo] = useState<any>(null);
-  const [conceptos, setConceptos] = useState<any[]>([]);
-  const [selectedConceptos, setSelectedConceptos] = useState<{conceptoId: number; porcentaje?: number | string; montoFijo?: number | string}[]>([]);
-  const [selectedCostos, setSelectedCostos] = useState<{conceptoId: number; porcentaje?: number | string; montoFijo?: number | string}[]>([]);
+  const [selectedConceptos] = useState<{conceptoId: number; porcentaje?: number | string; montoFijo?: number | string}[]>([]);
+  const [selectedCostos] = useState<{conceptoId: number; porcentaje?: number | string; montoFijo?: number | string}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -29,47 +28,47 @@ export default function RefinanciarPrestamoPage() {
     fechaFin: '',
   });
 
-  const toggleConcepto = (conceptoId: number, porcentaje: number, esCalculado: boolean = true) => {
-    setSelectedConceptos(prev => {
-      const exists = prev.find(c => c.conceptoId === conceptoId);
-      if (exists) {
-        return prev.filter(c => c.conceptoId !== conceptoId);
-      } else {
-        return [...prev, esCalculado ? { conceptoId, porcentaje } : { conceptoId, montoFijo: 0 }];
-      }
-    });
-  };
+  // const toggleConcepto = (conceptoId: number, porcentaje: number, esCalculado: boolean = true) => {
+  //   setSelectedConceptos(prev => {
+  //     const exists = prev.find(c => c.conceptoId === conceptoId);
+  //     if (exists) {
+  //       return prev.filter(c => c.conceptoId !== conceptoId);
+  //     } else {
+  //       return [...prev, esCalculado ? { conceptoId, porcentaje } : { conceptoId, montoFijo: 0 }];
+  //     }
+  //   });
+  // };
 
-  const toggleCosto = (conceptoId: number, porcentaje: number, esCalculado: boolean = true) => {
-    setSelectedCostos(prev => {
-      const exists = prev.find(c => c.conceptoId === conceptoId);
-      if (exists) {
-        return prev.filter(c => c.conceptoId !== conceptoId);
-      } else {
-        return [...prev, esCalculado ? { conceptoId, porcentaje } : { conceptoId, montoFijo: 0 }];
-      }
-    });
-  };
+  // const toggleCosto = (conceptoId: number, porcentaje: number, esCalculado: boolean = true) => {
+  //   setSelectedCostos(prev => {
+  //     const exists = prev.find(c => c.conceptoId === conceptoId);
+  //     if (exists) {
+  //       return prev.filter(c => c.conceptoId !== conceptoId);
+  //     } else {
+  //       return [...prev, esCalculado ? { conceptoId, porcentaje } : { conceptoId, montoFijo: 0 }];
+  //     }
+  //   });
+  // };
 
-  const updateConceptoValue = (conceptoId: number, value: number | string, isMontoFijo: boolean) => {
-    setSelectedConceptos(prev => 
-      prev.map(c => 
-        c.conceptoId === conceptoId 
-          ? (isMontoFijo ? { conceptoId, montoFijo: value } : { conceptoId, porcentaje: value })
-          : c
-      )
-    );
-  };
+  // const updateConceptoValue = (conceptoId: number, value: number | string, isMontoFijo: boolean) => {
+  //   setSelectedConceptos(prev => 
+  //     prev.map(c => 
+  //       c.conceptoId === conceptoId 
+  //         ? (isMontoFijo ? { conceptoId, montoFijo: value } : { conceptoId, porcentaje: value })
+  //         : c
+  //     )
+  //   );
+  // };
 
-  const updateCostoValue = (conceptoId: number, value: number | string, isMontoFijo: boolean) => {
-    setSelectedCostos(prev => 
-      prev.map(c => 
-        c.conceptoId === conceptoId 
-          ? (isMontoFijo ? { conceptoId, montoFijo: value } : { conceptoId, porcentaje: value })
-          : c
-      )
-    );
-  };
+  // const updateCostoValue = (conceptoId: number, value: number | string, isMontoFijo: boolean) => {
+  //   setSelectedCostos(prev => 
+  //     prev.map(c => 
+  //       c.conceptoId === conceptoId 
+  //         ? (isMontoFijo ? { conceptoId, montoFijo: value } : { conceptoId, porcentaje: value })
+  //         : c
+  //     )
+  //   );
+  // };
 
   const calculateTotalDescuentos = () => {
     const monto = parseFloat(formData.montoNuevo) || 0;
@@ -108,18 +107,14 @@ export default function RefinanciarPrestamoPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prestamoRes, conceptosRes] = await Promise.all([
-          prestamosApi.getOne(prestamoId),
-          conceptosCobroApi.getAll(true),
-        ]);
-        const prestamoData = prestamoRes.data?.data || prestamoRes.data;
+        const prestamoRes = await prestamosApi.getOne(prestamoId);
+        const prestamoData = prestamoRes;
         setPrestamo(prestamoData);
-        setConceptos(conceptosRes.data?.data || conceptosRes.data || []);
         
         setFormData(prev => ({
           ...prev,
           numeroPeriodos: '30',
-          frecuenciaPago: prestamoData.frecuenciaPago || 'DIARIO',
+          frecuenciaPago: (prestamoData as any).paymentFrequency || 'DIARIO',
         }));
       } catch (error) {
         console.error('Error:', error);
@@ -165,20 +160,22 @@ export default function RefinanciarPrestamoPage() {
         }
       }) : [];
 
-      await prestamosApi.refinanciar(prestamoId, {
-        montoNuevo: parseFloat(formData.montoNuevo),
-        tasaInteres: calculateTasaInteres(),
-        frecuenciaPago: formData.frecuenciaPago,
-        conceptosDescuento: conceptosDescuento.length > 0 ? conceptosDescuento : undefined,
-        conceptosCosto: conceptosCosto.length > 0 ? conceptosCosto : undefined,
-        motivoRefinanciamiento: formData.motivoRefinanciamiento || undefined,
-        fechaDesembolso: formData.fechaDesembolso,
-        fechaInicioCobro: formData.fechaInicioCobro,
-        valorCuota: parseFloat(formData.valorCuota),
-        fechaFin: formData.fechaFin,
-      });
-
-      router.push(`/dashboard/prestamos`);
+      // TODO: Implement refinanciar endpoint in backend
+      // await prestamosApi.refinanciar(prestamoId, {
+      //   montoNuevo: parseFloat(formData.montoNuevo),
+      //   tasaInteres: calculateTasaInteres(),
+      //   frecuenciaPago: formData.frecuenciaPago,
+      //   conceptosDescuento: conceptosDescuento.length > 0 ? conceptosDescuento : undefined,
+      //   conceptosCosto: conceptosCosto.length > 0 ? conceptosCosto : undefined,
+      //   motivoRefinanciamiento: formData.motivoRefinanciamiento || undefined,
+      //   fechaDesembolso: formData.fechaDesembolso,
+      //   fechaInicioCobro: formData.fechaInicioCobro,
+      //   valorCuota: parseFloat(formData.valorCuota),
+      //   fechaFin: formData.fechaFin,
+      // });
+      
+      alert('Funcionalidad de refinanciamiento pendiente de implementar en el backend');
+      router.push('/dashboard/prestamos');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al refinanciar préstamo');
     } finally {

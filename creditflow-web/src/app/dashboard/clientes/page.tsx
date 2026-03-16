@@ -16,8 +16,7 @@ export default function ClientesPage() {
     const fetchClientes = async () => {
       try {
         const res = await api.clientes.getAll();
-        const data = Array.isArray(res) ? res : res.data || [];
-        setClientes(data);
+        setClientes(res);
       } catch (error) {
         console.error('Error fetching clientes:', error);
       } finally {

@@ -11,7 +11,11 @@ export default function Home() {
   useEffect(() => {
     if (!isLoading) {
       if (user) {
-        router.push('/dashboard');
+        if (user.role === 'SUPER_ADMIN') {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         router.push('/login');
       }
@@ -19,10 +23,11 @@ export default function Home() {
   }, [user, isLoading, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">CreditFlow</h1>
-        <p className="text-gray-600">Cargando...</p>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-600 border-r-transparent mb-4"></div>
+        <h1 className="text-2xl font-bold text-slate-800 mb-2">CreditFlow</h1>
+        <p className="text-slate-600">Cargando sistema...</p>
       </div>
     </div>
   );

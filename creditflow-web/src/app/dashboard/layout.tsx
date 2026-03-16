@@ -14,17 +14,22 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/login');
+    if (!isLoading) {
+      if (!user) {
+        router.push('/login');
+      } else if (user.role === 'SUPER_ADMIN') {
+        // Redirect SUPER_ADMIN to admin panel
+        router.push('/admin');
+      }
     }
   }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-          <p className="mt-2 text-gray-600">Cargando...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-600 border-r-transparent"></div>
+          <p className="mt-4 text-slate-600 font-medium">Cargando sistema...</p>
         </div>
       </div>
     );
@@ -34,11 +39,23 @@ export default function DashboardLayout({
     return null;
   }
 
+  // Don't render dashboard for SUPER_ADMIN
+  if (user.role === 'SUPER_ADMIN') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-800">Redirigiendo...</h1>
+          <p className="text-slate-600 mt-2">Accediendo al panel de administración</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8 max-w-7xl">
+        <div className="container mx-auto px-6 py-8 max-w-7xl">
           {children}
         </div>
       </main>

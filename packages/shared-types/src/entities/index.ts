@@ -62,13 +62,46 @@ export interface CreateLoanDto {
   loanAmount: number;
   interestRate: number;
   paymentFrequency: PaymentFrequency;
-  installmentValue: number;
-  startDate: string;
+  installmentValue?: number;
+  disbursementDate: string;
+  collectionStartDate?: string;
+  endDate?: string;
+  discountConcepts?: Array<{
+    conceptId: number;
+    percentage?: number;
+    fixedAmount?: number;
+  }>;
+  costConcepts?: Array<{
+    conceptId: number;
+    percentage?: number;
+    fixedAmount?: number;
+  }>;
 }
 
 export interface LoanWithRelations extends Loan {
   client: Client;
   payments: Payment[];
+}
+
+export interface RefinanceLoanDto {
+  newAmount: number;
+  interestRate: number;
+  paymentFrequency: PaymentFrequency;
+  installmentValue?: number;
+  disbursementDate: string;
+  collectionStartDate?: string;
+  endDate?: string;
+  refinancingReason?: string;
+  discountConcepts?: Array<{
+    conceptId: number;
+    percentage?: number;
+    fixedAmount?: number;
+  }>;
+  costConcepts?: Array<{
+    conceptId: number;
+    percentage?: number;
+    fixedAmount?: number;
+  }>;
 }
 
 // ============================================
@@ -91,6 +124,7 @@ export interface Payment {
 export interface CreatePaymentDto {
   loanId: number;
   paidAmount: number;
+  paidBy?: 'CLIENT' | 'COLLECTOR';
   notes?: string;
 }
 
@@ -160,6 +194,7 @@ export type CreateClienteDto = CreateClientDto;
 export type UpdateClienteDto = UpdateClientDto;
 export type Prestamo = Loan;
 export type CreatePrestamoDto = CreateLoanDto;
+export type RefinancePrestamoDto = RefinanceLoanDto;
 export type PrestamoWithRelations = LoanWithRelations;
 export type Pago = Payment;
 export type CreatePagoDto = CreatePaymentDto;

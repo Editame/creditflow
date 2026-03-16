@@ -45,7 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await api.auth.login(credentials);
     Cookies.set('token', response.access_token, { expires: 7 });
     setUser(response.user);
-    router.push('/dashboard');
+    
+    // Redirect based on user role
+    if (response.user.role === 'SUPER_ADMIN') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   const logout = (): void => {

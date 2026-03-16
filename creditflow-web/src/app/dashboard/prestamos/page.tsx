@@ -40,7 +40,7 @@ export default function PrestamosPage() {
     const fetchPrestamos = async () => {
       try {
         const allRes = await prestamosApi.getAll({ limit: 1000 });
-        const allData = allRes.data?.data?.data || allRes.data?.data || allRes.data;
+        const allData = allRes;
         setPrestamos(Array.isArray(allData) ? allData : []);
       } catch (error) {
         console.error('Error fetching prestamos:', error);
@@ -51,7 +51,7 @@ export default function PrestamosPage() {
     const fetchRutas = async () => {
       try {
         const res = await rutasApi.getAll();
-        const data = res.data?.data || res.data;
+        const data = res;
         setRutas(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching rutas:', error);

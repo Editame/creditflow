@@ -165,6 +165,53 @@ class ApiClient {
     },
   };
 
+  // Charge Concepts
+  chargeConcepts = {
+    getAll: async (): Promise<any[]> => {
+      const { data } = await this.client.get('/charge-concepts');
+      return data.data || data;
+    },
+    create: async (dto: any): Promise<any> => {
+      const { data } = await this.client.post('/charge-concepts', dto);
+      return data;
+    },
+  };
+
+  // Admin (SUPER_ADMIN only)
+  admin = {
+    getStats: async (): Promise<any> => {
+      const { data } = await this.client.get('/admin/stats');
+      return data.data || data;
+    },
+    getTenants: async (): Promise<any[]> => {
+      const { data } = await this.client.get('/admin/tenants');
+      return data.data || data;
+    },
+    createTenant: async (dto: any): Promise<any> => {
+      const { data } = await this.client.post('/admin/tenants', dto);
+      return data.data || data;
+    },
+    updateTenant: async (id: string, dto: any): Promise<any> => {
+      const { data } = await this.client.patch(`/admin/tenants/${id}`, dto);
+      return data.data || data;
+    },
+    deleteTenant: async (id: string): Promise<void> => {
+      await this.client.delete(`/admin/tenants/${id}`);
+    },
+    getTenantUsers: async (id: string): Promise<any[]> => {
+      const { data } = await this.client.get(`/admin/tenants/${id}/users`);
+      return data.data || data;
+    },
+    getTenantLimits: async (id: string): Promise<any> => {
+      const { data } = await this.client.get(`/admin/tenants/${id}/limits`);
+      return data.data || data;
+    },
+    generateLicense: async (licenseData: any): Promise<any> => {
+      const { data } = await this.client.post('/admin/licenses/generate', licenseData);
+      return data.data || data;
+    },
+  };
+
   // Health check
   async healthCheck(): Promise<{ status: string; message: string }> {
     const { data } = await this.client.get('/');
@@ -173,3 +220,11 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
+// Export individual APIs for backward compatibility
+export const clientesApi = api.clientes;
+export const prestamosApi = api.prestamos;
+export const pagosApi = api.pagos;
+export const gastosApi = api.gastos;
+export const rutasApi = api.rutas;
+export const conceptosCobroApi = api.chargeConcepts;

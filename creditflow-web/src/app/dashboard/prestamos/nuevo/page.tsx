@@ -54,12 +54,12 @@ export default function NuevoPrestamoPage() {
     const fetchData = async () => {
       try {
         const conceptosRes = await conceptosCobroApi.getAll();
-        const conceptosData = conceptosRes.data?.data || [];
+        const conceptosData = conceptosRes;
         setConceptos(Array.isArray(conceptosData) ? conceptosData : []);
 
         if (clienteIdParam) {
           const clienteRes = await clientesApi.getOne(parseInt(clienteIdParam));
-          const clienteData = clienteRes.data?.data || clienteRes.data;
+          const clienteData = clienteRes;
           if (clienteData) {
             setSelectedCliente(clienteData);
             setStep('form');
@@ -67,7 +67,7 @@ export default function NuevoPrestamoPage() {
         }
         
         const res = await clientesApi.getAll({ limit: 100 });
-        const data = res.data?.data?.data || res.data?.data || res.data;
+        const data = res;
         setClientes(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching data:', error);

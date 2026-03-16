@@ -1,4 +1,18 @@
 // ============================================
+// AUTHENTICATION
+// ============================================
+
+export interface LoginDto {
+  username: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  user: any; // Will be typed by User from usuario.types
+}
+
+// ============================================
 // PAGINACIÓN
 // ============================================
 

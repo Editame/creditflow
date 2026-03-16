@@ -13,7 +13,6 @@ export default function NuevaRutaPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    active: true,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,29 +81,6 @@ export default function NuevaRutaPage() {
             rows={3}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all touch-manipulation"
           />
-        </div>
-
-        {/* Estado */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Estado
-          </label>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-600">Ruta activa</span>
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, active: !formData.active })}
-              className={`relative w-14 h-8 rounded-full transition-colors ${
-                formData.active ? 'bg-green-500' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
-                  formData.active ? 'left-7' : 'left-1'
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         {/* Submit Button */}

@@ -36,12 +36,11 @@ export default function RutaDetallePage() {
           api.clientes.getAll(),
         ]);
         
-        const rutaData = rutaRes.data || rutaRes;
-        setRuta(rutaData);
+        setRuta(rutaRes);
         setFormData({
-          name: rutaData.name || '',
-          description: rutaData.description || '',
-          active: rutaData.active !== false,
+          name: rutaRes.name || '',
+          description: rutaRes.description || '',
+          active: rutaRes.active !== false,
         });
         
         const clientesData = Array.isArray(clientesRes) ? clientesRes : clientesRes.data || [];
@@ -61,7 +60,7 @@ export default function RutaDetallePage() {
     try {
       await api.rutas.update(rutaId, formData);
       const res = await api.rutas.getOne(rutaId);
-      setRuta(res.data || res);
+      setRuta(res);
       setShowEditModal(false);
     } catch (error) {
       console.error('Error updating ruta:', error);

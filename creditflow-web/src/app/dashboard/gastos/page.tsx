@@ -30,7 +30,7 @@ export default function GastosPage() {
   const loadGastos = async () => {
     try {
       const response = await api.gastos.getAll();
-      setGastos(Array.isArray(response) ? response : response.data || []);
+      setGastos(response);
     } catch (error) {
       console.error('Error loading gastos:', error);
       setGastos([]);
@@ -43,11 +43,13 @@ export default function GastosPage() {
     e.preventDefault();
     try {
       const payload = {
-        ...formData,
-        monto: parseFloat(formData.monto),
+        routeId: 1, // TODO: Get from context or user selection
+        description: formData.descripcion,
+        amount: parseFloat(formData.monto),
+        category: formData.categoria,
       };
       if (editingId) {
-        await api.gastos.update(editingId, payload);
+        await api.gastos.update(parseInt(editingId), payload);
       } else {
         await api.gastos.create(payload);
       }
@@ -62,15 +64,15 @@ export default function GastosPage() {
 
   const handleEdit = (gasto: Gasto) => {
     setFormData({
-      descripcion: gasto.descripcion,
-      monto: gasto.monto.toString(),
-      categoria: gasto.categoria || '',
+      descripcion: gasto.description,
+      monto: gasto.amount.toString(),
+      categoria: gasto.category || '',
     });
-    setEditingId(gasto.id);
+    setEditingId(gasto.id.toString());
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar este gasto?')) return;
     try {
       await api.gastos.delete(id);
@@ -98,7 +100,8 @@ export default function GastosPage() {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Gastos</h1>
-        <Button onClick={() => setShowForm(!showForm)} icon={Plus}>
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus className="w-4 h-4 mr-2" />
           Nuevo Gasto
         </Button>
       </div>
@@ -159,30 +162,32 @@ export default function GastosPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <Receipt className="w-5 h-5 text-primary-600" />
-                      <h3 className="font-semibold text-gray-900">{gasto.descripcion}</h3>
+                      <h3 className="font-semibold text-gray-900">{gasto.description}</h3>
                     </div>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Monto:</span>
-                      <span className="font-semibold text-red-600 text-lg">-${gasto.monto.toLocaleString()}</span>
+                      <span className="font-semibold text-red-600 text-lg">-${gasto.amount.toLocaleString()}</span>
                     </div>
-                    {gasto.categoria && (
+                    {gasto.category && (
                       <div className="flex items-center gap-2 text-gray-600">
                         <Tag className="w-4 h-4" />
-                        <span>{gasto.categoria}</span>
+                        <span>{gasto.category}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      <span>{new Date(gasto.fecha).toLocaleDateString()}</span>
+                      <span>{new Date(gasto.date).toLocaleDateString()}</span>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2">
-                    <Button size="sm" variant="secondary" icon={Edit} onClick={() => handleEdit(gasto)}>
+                    <Button size="sm" variant="secondary" onClick={() => handleEdit(gasto)}>
+                      <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <Button size="sm" variant="danger" icon={Trash2} onClick={() => handleDelete(gasto.id)}>
+                    <Button size="sm" variant="danger" onClick={() => handleDelete(gasto.id)}>
+                      <Trash2 className="w-4 h-4 mr-1" />
                       Eliminar
                     </Button>
                   </div>

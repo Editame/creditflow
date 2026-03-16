@@ -15,8 +15,8 @@ export default function RutasPage() {
     const fetchRutas = async () => {
       try {
         const res = await api.rutas.getAll();
-        const data = Array.isArray(res) ? res : res.data || [];
-        setRutas(data);
+        const data = res;
+        setRutas(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching rutas:', error);
       } finally {

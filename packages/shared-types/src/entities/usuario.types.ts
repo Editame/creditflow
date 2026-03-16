@@ -1,42 +1,43 @@
 import { UserRole } from '../enums';
 
-export interface Usuario {
+export interface User {
   id: number;
-  tenantId: string;
+  tenantId: string | null;
   username: string;
   email: string | null;
   role: UserRole;
-  activo: boolean;
+  active: boolean;
   createdAt: Date;
   updatedAt: Date;
   lastLogin: Date | null;
+  tenant?: {
+    id: string;
+    name: string;
+    slug: string;
+    plan: string;
+  };
 }
 
-export interface UsuarioSafe extends Omit<Usuario, 'password'> {
+export interface UserSafe extends Omit<User, 'password'> {
   // Sin password para respuestas
 }
 
-export interface CreateUsuarioDto {
+export interface CreateUserDto {
   username: string;
   email?: string;
   password: string;
   role: UserRole;
 }
 
-export interface UpdateUsuarioDto {
+export interface UpdateUserDto {
   username?: string;
   email?: string;
   password?: string;
   role?: UserRole;
-  activo?: boolean;
+  active?: boolean;
 }
 
-export interface LoginDto {
-  username: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  access_token: string;
-  user: UsuarioSafe;
-}
+// Alias para compatibilidad
+export type Usuario = User;
+export type CreateUsuarioDto = CreateUserDto;
+export type UpdateUsuarioDto = UpdateUserDto;
