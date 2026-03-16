@@ -132,6 +132,10 @@ class ApiClient {
       const { data } = await this.client.post<Prestamo>('/prestamos', dto);
       return data;
     },
+    refinance: async (id: number, dto: any): Promise<any> => {
+      const { data } = await this.client.post(`/prestamos/${id}/refinanciar`, dto);
+      return data;
+    },
   };
 
   // Pagos

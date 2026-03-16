@@ -161,20 +161,19 @@ export default function RefinanciarPrestamoPage() {
       }) : [];
 
       // TODO: Implement refinanciar endpoint in backend
-      // await prestamosApi.refinanciar(prestamoId, {
-      //   montoNuevo: parseFloat(formData.montoNuevo),
-      //   tasaInteres: calculateTasaInteres(),
-      //   frecuenciaPago: formData.frecuenciaPago,
-      //   conceptosDescuento: conceptosDescuento.length > 0 ? conceptosDescuento : undefined,
-      //   conceptosCosto: conceptosCosto.length > 0 ? conceptosCosto : undefined,
-      //   motivoRefinanciamiento: formData.motivoRefinanciamiento || undefined,
-      //   fechaDesembolso: formData.fechaDesembolso,
-      //   fechaInicioCobro: formData.fechaInicioCobro,
-      //   valorCuota: parseFloat(formData.valorCuota),
-      //   fechaFin: formData.fechaFin,
-      // });
+      await prestamosApi.refinance(prestamoId, {
+        newAmount: parseFloat(formData.montoNuevo),
+        interestRate: calculateTasaInteres(),
+        paymentFrequency: formData.frecuenciaPago === 'DIARIO' ? 'DAILY' : 'WEEKLY',
+        discountConcepts: conceptosDescuento.length > 0 ? conceptosDescuento : undefined,
+        costConcepts: conceptosCosto.length > 0 ? conceptosCosto : undefined,
+        refinancingReason: formData.motivoRefinanciamiento || undefined,
+        disbursementDate: formData.fechaDesembolso,
+        collectionStartDate: formData.fechaInicioCobro,
+        installmentValue: parseFloat(formData.valorCuota),
+        endDate: formData.fechaFin,
+      });
       
-      alert('Funcionalidad de refinanciamiento pendiente de implementar en el backend');
       router.push('/dashboard/prestamos');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al refinanciar préstamo');
