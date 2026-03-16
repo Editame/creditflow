@@ -18,25 +18,6 @@ export interface Client {
   updatedAt: Date;
 }
 
-export interface CreateClientDto {
-  routeId: number;
-  idNumber: string;
-  fullName: string;
-  phone?: string;
-  address?: string;
-  idPhotoUrl?: string;
-}
-
-export interface UpdateClientDto {
-  routeId?: number;
-  idNumber?: string;
-  fullName?: string;
-  phone?: string;
-  address?: string;
-  idPhotoUrl?: string;
-  active?: boolean;
-}
-
 // ============================================
 // LOAN
 // ============================================
@@ -50,58 +31,18 @@ export interface Loan {
   paymentFrequency: PaymentFrequency;
   installmentValue: number;
   pendingBalance: number;
-  startDate: Date;
+  disbursementDate: Date;
+  collectionStartDate: Date;
   endDate: Date;
+  originalEndDate: Date;
   status: LoanStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface CreateLoanDto {
-  clientId: number;
-  loanAmount: number;
-  interestRate: number;
-  paymentFrequency: PaymentFrequency;
-  installmentValue?: number;
-  disbursementDate: string;
-  collectionStartDate?: string;
-  endDate?: string;
-  discountConcepts?: Array<{
-    conceptId: number;
-    percentage?: number;
-    fixedAmount?: number;
-  }>;
-  costConcepts?: Array<{
-    conceptId: number;
-    percentage?: number;
-    fixedAmount?: number;
-  }>;
-}
-
 export interface LoanWithRelations extends Loan {
   client: Client;
   payments: Payment[];
-}
-
-export interface RefinanceLoanDto {
-  newAmount: number;
-  interestRate: number;
-  paymentFrequency: PaymentFrequency;
-  installmentValue?: number;
-  disbursementDate: string;
-  collectionStartDate?: string;
-  endDate?: string;
-  refinancingReason?: string;
-  discountConcepts?: Array<{
-    conceptId: number;
-    percentage?: number;
-    fixedAmount?: number;
-  }>;
-  costConcepts?: Array<{
-    conceptId: number;
-    percentage?: number;
-    fixedAmount?: number;
-  }>;
 }
 
 // ============================================
@@ -114,18 +55,12 @@ export interface Payment {
   loanId: number;
   collectorId: number;
   routeId: number;
-  paidAmount: number;
+  amountPaid: number;
+  paidBy: 'CLIENT' | 'COLLECTOR';
   paymentDate: Date;
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface CreatePaymentDto {
-  loanId: number;
-  paidAmount: number;
-  paidBy?: 'CLIENT' | 'COLLECTOR';
-  notes?: string;
 }
 
 export interface PaymentWithRelations extends Payment {
@@ -150,17 +85,6 @@ export interface Route {
   updatedAt: Date;
 }
 
-export interface CreateRouteDto {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateRouteDto {
-  name?: string;
-  description?: string;
-  active?: boolean;
-}
-
 // ============================================
 // EXPENSE
 // ============================================
@@ -177,12 +101,21 @@ export interface Expense {
   updatedAt: Date;
 }
 
-export interface CreateExpenseDto {
-  routeId: number;
-  amount: number;
-  description: string;
-  category?: string;
-  date?: string;
+// ============================================
+// CHARGE CONCEPT
+// ============================================
+
+export interface ChargeConcept {
+  id: number;
+  tenantId: string;
+  name: string;
+  percentage: number;
+  type: 'DISCOUNT' | 'COST';
+  isCalculated: boolean;
+  description?: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // ============================================
@@ -190,17 +123,7 @@ export interface CreateExpenseDto {
 // ============================================
 
 export type Cliente = Client;
-export type CreateClienteDto = CreateClientDto;
-export type UpdateClienteDto = UpdateClientDto;
 export type Prestamo = Loan;
-export type CreatePrestamoDto = CreateLoanDto;
-export type RefinancePrestamoDto = RefinanceLoanDto;
-export type PrestamoWithRelations = LoanWithRelations;
 export type Pago = Payment;
-export type CreatePagoDto = CreatePaymentDto;
-export type PagoWithRelations = PaymentWithRelations;
 export type Ruta = Route;
-export type CreateRutaDto = CreateRouteDto;
-export type UpdateRutaDto = UpdateRouteDto;
 export type Gasto = Expense;
-export type CreateGastoDto = CreateExpenseDto;
