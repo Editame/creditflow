@@ -13,11 +13,25 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Crear tenant de prueba
-  const tenant = await prisma.tenant.upsert({
-    where: { slug: 'demo' },
-    update: {},
-    create: {
+  // Crear usuario SUPER_ADMIN (sin tenant - es el maestro del sistema)
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  
+  const superAdmin = await prisma.user.create({
+    data: {
+      tenantId: null, // Sin tenant - es el usuario maestro
+      username: 'admin',
+      email: 'admin@creditflow.com',
+      password: hashedPassword,
+      role: 'SUPER_ADMIN',
+      active: true,
+    },
+  });
+
+  console.log('✅ SUPER_ADMIN creado:', superAdmin.username);
+
+  // Crear tenant de demo para pruebas
+  const demoTenant = await prisma.tenant.create({
+    data: {
       name: 'Empresa Demo',
       slug: 'demo',
       plan: 'PROFESSIONAL',
@@ -27,34 +41,32 @@ async function main() {
     },
   });
 
-  console.log('✅ Tenant creado:', tenant.name);
+  console.log('✅ Tenant demo creado:', demoTenant.name);
 
-  // Crear usuario admin
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-  
-  const user = await prisma.user.upsert({
-    where: { 
-      tenantId_username: {
-        tenantId: tenant.id,
-        username: 'admin'
-      }
-    },
-    update: {},
-    create: {
-      tenantId: tenant.id,
-      username: 'admin',
-      email: 'admin@demo.com',
+  // Crear usuario admin del tenant demo
+  const tenantAdmin = await prisma.user.create({
+    data: {
+      tenantId: demoTenant.id,
+      username: 'demo-admin',
+      email: 'demo@creditflow.com',
       password: hashedPassword,
       role: 'ADMIN',
       active: true,
     },
   });
 
-  console.log('✅ Usuario creado:', user.username);
+  console.log('✅ Admin del tenant demo creado:', tenantAdmin.username);
+
   console.log('\n📋 Credenciales de acceso:');
+  console.log('🔑 SUPER_ADMIN (Maestro del sistema):');
   console.log('   Usuario: admin');
   console.log('   Contraseña: admin123');
-  console.log('   Tenant: demo\n');
+  console.log('   Rol: SUPER_ADMIN (sin tenant)');
+  console.log('\n🏢 ADMIN del tenant demo:');
+  console.log('   Usuario: demo-admin');
+  console.log('   Contraseña: admin123');
+  console.log('   Tenant: demo');
+  console.log('   Rol: ADMIN\n');
 }
 
 main()

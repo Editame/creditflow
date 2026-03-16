@@ -2,12 +2,13 @@ import { Controller, Get, Post, Body, Delete, Param, UseGuards, Query, ParseIntP
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { GastosService } from './gastos.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentTenant } from '../common';
 import type { CreateGastoDto, FilterGastoDto } from '@creditflow/shared-types';
 
 @ApiTags('Gastos')
 @Controller('gastos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class GastosController {
   constructor(private readonly gastosService: GastosService) {}

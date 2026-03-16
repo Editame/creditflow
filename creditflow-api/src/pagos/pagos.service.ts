@@ -42,14 +42,14 @@ export class PagosService {
           loanId: createPagoDto.loanId,
           collectorId: userId,
           routeId: loan.client.routeId,
-          paidAmount: paymentAmount,
-          paidBy: createPagoDto.paidBy || 'CLIENTE',
+          amountPaid: paymentAmount,
+          paidBy: createPagoDto.paidBy || 'CLIENT',
           notes: createPagoDto.notes,
         },
       });
 
       const newBalance = pendingBalance - paymentAmount;
-      let newStatus: LoanStatus = loan.status;
+      let newStatus = loan.status;
       let newEndDate = loan.endDate;
 
       if (newBalance <= 0) {

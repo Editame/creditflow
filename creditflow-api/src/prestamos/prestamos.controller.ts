@@ -2,12 +2,13 @@ import { Controller, Get, Post, Body, Param, UseGuards, Query, ParseIntPipe } fr
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PrestamosService } from './prestamos.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentTenant } from '../common';
-import type { CreatePrestamoDto, FilterPrestamoDto } from '@creditflow/shared-types';
+import { TenantGuard } from '../common/guards/tenant.guard';
+import { CurrentTenant, CurrentUser } from '../common';
+import type { CreatePrestamoDto, FilterPrestamoDto, RefinancePrestamoDto } from '@creditflow/shared-types';
 
 @ApiTags('Prestamos')
 @Controller('prestamos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class PrestamosController {
   constructor(private readonly prestamosService: PrestamosService) {}
@@ -25,5 +26,15 @@ export class PrestamosController {
   @Get(':id')
   findOne(@CurrentTenant() tenantId: string, @Param('id', ParseIntPipe) id: number) {
     return this.prestamosService.findOne(tenantId, id);
+  }
+
+  @Post(':id/refinanciar')
+  refinance(
+    @CurrentTenant() tenantId: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() refinanceDto: RefinancePrestamoDto,
+    @CurrentUser() user: any
+  ) {
+    return this.prestamosService.refinance(tenantId, id, refinanceDto, user.id);
   }
 }

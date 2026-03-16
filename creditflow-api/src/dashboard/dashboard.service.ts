@@ -24,8 +24,8 @@ export class DashboardService {
     const expectedDaily = await this.prisma.loan.aggregate({
       where: {
         tenantId,
-        status: { in: ['ACTIVO', 'MORA'] },
-        paymentFrequency: 'DIARIO',
+        status: { in: ['ACTIVE', 'OVERDUE'] },
+        paymentFrequency: 'DAILY',
         collectionStartDate: { lte: todayStart },
       },
       _sum: { installmentValue: true },
@@ -34,8 +34,8 @@ export class DashboardService {
     const weeklyLoans = await this.prisma.loan.findMany({
       where: {
         tenantId,
-        status: { in: ['ACTIVO', 'MORA'] },
-        paymentFrequency: 'SEMANAL',
+        status: { in: ['ACTIVE', 'OVERDUE'] },
+        paymentFrequency: 'WEEKLY',
       },
       select: { installmentValue: true, collectionStartDate: true },
     });
@@ -75,13 +75,13 @@ export class DashboardService {
     const liquidatedDay = totalCollected - totalLent + totalDiscounts - totalExpenses;
 
     const activePortfolio = await this.prisma.loan.aggregate({
-      where: { tenantId, status: { in: ['ACTIVO', 'MORA'] } },
+      where: { tenantId, status: { in: ['ACTIVE', 'OVERDUE'] } },
       _sum: { pendingBalance: true },
       _count: true,
     });
 
     const overduePortfolio = await this.prisma.loan.aggregate({
-      where: { tenantId, status: 'MORA' },
+      where: { tenantId, status: 'OVERDUE' },
       _sum: { pendingBalance: true },
       _count: true,
     });
@@ -116,7 +116,7 @@ export class DashboardService {
 
     const overdueByClient = await this.prisma.loan.groupBy({
       by: ['clientId'],
-      where: { tenantId, status: 'MORA' },
+      where: { tenantId, status: 'OVERDUE' },
       _sum: { pendingBalance: true },
     });
 

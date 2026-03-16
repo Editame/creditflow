@@ -8,7 +8,6 @@ export class RolesService {
   async findAll() {
     return this.prisma.role.findMany({
       where: {
-        active: true,
         name: { not: 'SUPER_ADMIN' },
       },
       include: {
@@ -17,16 +16,13 @@ export class RolesService {
             permission: true,
           },
         },
-        _count: {
-          select: { users: true },
-        },
       },
       orderBy: { name: 'asc' },
     });
   }
 
-  async create(createRoleDto: { name: string; active?: boolean }) {
-    const { name, active = true } = createRoleDto;
+  async create(createRoleDto: { name: string }) {
+    const { name } = createRoleDto;
 
     const existingRole = await this.prisma.role.findFirst({
       where: { name: name.toUpperCase() },
@@ -39,16 +35,12 @@ export class RolesService {
     return this.prisma.role.create({
       data: {
         name: name.toUpperCase(),
-        active,
       },
       include: {
         permissions: {
           include: {
             permission: true,
           },
-        },
-        _count: {
-          select: { users: true },
         },
       },
     });
@@ -61,13 +53,6 @@ export class RolesService {
         permissions: {
           include: {
             permission: true,
-          },
-        },
-        users: {
-          select: {
-            id: true,
-            username: true,
-            active: true,
           },
         },
       },

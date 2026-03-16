@@ -9,5 +9,5 @@ export class UpdateRolePermissionsDto {
   })
   @IsArray()
   @IsInt({ each: true })
-  permissionIds: number[];
+  permissionIds!: number[];
 }

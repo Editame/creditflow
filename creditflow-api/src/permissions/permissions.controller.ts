@@ -14,8 +14,7 @@ export class PermissionsController {
   @ApiOperation({ summary: 'Get all permissions' })
   async findAll() {
     return this.prisma.permission.findMany({
-      where: { active: true },
-      orderBy: [{ module: 'asc' }, { action: 'asc' }],
+      orderBy: [{ module: 'asc' }, { name: 'asc' }],
     });
   }
 }

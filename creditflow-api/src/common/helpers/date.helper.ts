@@ -1,4 +1,4 @@
-import { FrecuenciaPago } from '@prisma/client';
+import { PaymentFrequency } from '@prisma/client';
 
 export const TIMEZONE_OFFSET_HOURS = -5;
 export const TIMEZONE_OFFSET_MS = TIMEZONE_OFFSET_HOURS * 60 * 60 * 1000;
@@ -73,21 +73,21 @@ export function getLocalDateFromUTC(date: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0));
 }
 
-export function aplicaCobroHoy(fechaInicioCobro: Date, frecuencia: FrecuenciaPago): boolean {
+export function aplicaCobroHoy(fechaInicioCobro: Date, frecuencia: PaymentFrequency): boolean {
   const inicio = getStartOfDayUTC(fechaInicioCobro);
   const hoy = getTodayInTimezone();
   if (hoy.getTime() < inicio.getTime()) return false;
-  if (frecuencia === FrecuenciaPago.DIARIO) return true;
+  if (frecuencia === PaymentFrequency.DAILY) return true;
   return inicio.getUTCDay() === hoy.getUTCDay();
 }
 
-export function calculatePeriodsElapsed(fechaInicioCobro: Date, frecuencia: FrecuenciaPago): number {
+export function calculatePeriodsElapsed(fechaInicioCobro: Date, frecuencia: PaymentFrequency): number {
   const now = getTodayInTimezone();
   const start = getStartOfDayUTC(fechaInicioCobro);
   if (now.getTime() <= start.getTime()) return 0;
   const diffTime = now.getTime() - start.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return frecuencia === FrecuenciaPago.DIARIO ? diffDays : Math.floor(diffDays / 7);
+  return frecuencia === PaymentFrequency.DAILY ? diffDays : Math.floor(diffDays / 7);
 }
 
 export function addDaysToDate(date: Date, days: number): Date {
@@ -96,7 +96,7 @@ export function addDaysToDate(date: Date, days: number): Date {
   return result;
 }
 
-export function calcularDiasEnMora(fechaInicioCobro: Date, frecuencia: FrecuenciaPago, totalPaid: number, valorCuota: number): number {
+export function calcularDiasEnMora(fechaInicioCobro: Date, frecuencia: PaymentFrequency, totalPaid: number, valorCuota: number): number {
   if (valorCuota <= 0) return 0;
   const periodosTranscurridos = calculatePeriodsElapsed(fechaInicioCobro, frecuencia);
   const aplicaHoy = aplicaCobroHoy(fechaInicioCobro, frecuencia);

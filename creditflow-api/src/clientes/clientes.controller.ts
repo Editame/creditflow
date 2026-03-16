@@ -2,12 +2,13 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Pa
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { ClientesService } from './clientes.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentTenant } from '../common';
 import type { CreateClienteDto, UpdateClienteDto, FilterClienteDto } from '@creditflow/shared-types';
 
 @ApiTags('Clientes')
 @Controller('clientes')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) {}

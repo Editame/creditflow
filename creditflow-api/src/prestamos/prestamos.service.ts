@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
 import { PaymentFrequency, LoanStatus } from '@creditflow/shared-types';
-import type { CreateLoanDto, FilterPrestamoDto } from '@creditflow/shared-types';
+import type { CreateLoanDto, FilterPrestamoDto, RefinanceLoanDto } from '@creditflow/shared-types';
 import { ChargeConceptsService } from '../charge-concepts/charge-concepts.service';
-import { addDaysToDate, calculatePeriodsElapsed, getNowInTimezone } from '../common/helpers/date.helper';
+import { addDaysToDate, calculatePeriodsElapsed } from '../common/helpers/date.helper';
 
 @Injectable()
 export class PrestamosService {
@@ -24,19 +24,19 @@ export class PrestamosService {
     let totalDiscounts = 0;
     let discountsCalculated: Array<{ conceptId: number; discountAmount: number; percentage: number }> = [];
 
-    if (createPrestamoDto.discountConcepts?.length > 0) {
+    if (createPrestamoDto.discountConcepts && createPrestamoDto.discountConcepts.length > 0) {
       const result = await this.chargeConceptsService.calculateDiscounts(tenantId, createPrestamoDto.loanAmount, createPrestamoDto.discountConcepts);
       totalDiscounts = result.totalDiscounts;
-      discountsCalculated = result.discountsCalculated;
+      discountsCalculated = result.calculatedDiscounts;
     }
 
     let totalCosts = 0;
     let costsCalculated: Array<{ conceptId: number; costAmount: number; percentage: number }> = [];
 
-    if (createPrestamoDto.costConcepts?.length > 0) {
+    if (createPrestamoDto.costConcepts && createPrestamoDto.costConcepts.length > 0) {
       const result = await this.chargeConceptsService.calculateCosts(tenantId, createPrestamoDto.loanAmount, createPrestamoDto.costConcepts);
       totalCosts = result.totalCosts;
-      costsCalculated = result.costsCalculated;
+      costsCalculated = result.calculatedCosts;
     }
 
     const receivedAmount = createPrestamoDto.loanAmount - totalDiscounts;
@@ -222,5 +222,130 @@ export class PrestamosService {
     const diffTime = endDate.getTime() - startDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return frequency === PaymentFrequency.DAILY ? Math.max(1, diffDays) : Math.max(1, Math.ceil(diffDays / 7));
+  }
+
+  async refinance(tenantId: string, loanId: number, refinanceDto: RefinanceLoanDto, userId: number) {
+    // Validar préstamo anterior
+    const previousLoan = await this.prisma.loan.findFirst({
+      where: { id: loanId, tenantId, status: LoanStatus.ACTIVE },
+      include: { client: true }
+    });
+
+    if (!previousLoan) {
+      throw new NotFoundException('Préstamo no encontrado o no está activo');
+    }
+
+    const previousPendingBalance = Number(previousLoan.pendingBalance);
+    
+    // Validar que el nuevo monto sea mayor al saldo pendiente
+    if (refinanceDto.newAmount <= previousPendingBalance) {
+      throw new BadRequestException('El nuevo monto debe ser mayor al saldo pendiente');
+    }
+
+    // Calcular descuentos y costos
+    let totalDiscounts = 0;
+    let discountsCalculated: Array<{ conceptId: number; discountAmount: number; percentage: number }> = [];
+
+    if (refinanceDto.discountConcepts && refinanceDto.discountConcepts.length > 0) {
+      const result = await this.chargeConceptsService.calculateDiscounts(tenantId, refinanceDto.newAmount, refinanceDto.discountConcepts);
+      totalDiscounts = result.totalDiscounts;
+      discountsCalculated = result.calculatedDiscounts;
+    }
+
+    let totalCosts = 0;
+    let costsCalculated: Array<{ conceptId: number; costAmount: number; percentage: number }> = [];
+
+    if (refinanceDto.costConcepts && refinanceDto.costConcepts.length > 0) {
+      const result = await this.chargeConceptsService.calculateCosts(tenantId, refinanceDto.newAmount, refinanceDto.costConcepts);
+      totalCosts = result.totalCosts;
+      costsCalculated = result.calculatedCosts;
+    }
+
+    const receivedAmount = refinanceDto.newAmount - totalDiscounts;
+    const disbursedAmount = receivedAmount + totalCosts;
+    const deliveredAmount = receivedAmount - previousPendingBalance;
+    const totalWithInterest = refinanceDto.newAmount * (1 + refinanceDto.interestRate / 100);
+
+    const disbursementDate = new Date(refinanceDto.disbursementDate);
+    const collectionStartDate = refinanceDto.collectionStartDate ? new Date(refinanceDto.collectionStartDate) : new Date(disbursementDate.getTime() + 24 * 60 * 60 * 1000);
+
+    let endDate: Date;
+    let installmentValue: number;
+
+    if (refinanceDto.endDate) {
+      endDate = new Date(refinanceDto.endDate);
+      const periods = this.calculatePeriodsBetweenDates(collectionStartDate, endDate, refinanceDto.paymentFrequency);
+      installmentValue = periods > 0 ? Math.ceil(totalWithInterest / periods) : totalWithInterest;
+    } else if (refinanceDto.installmentValue) {
+      installmentValue = refinanceDto.installmentValue;
+      const numInstallments = Math.ceil(totalWithInterest / installmentValue);
+      endDate = this.calculateEndDate(collectionStartDate, numInstallments, refinanceDto.paymentFrequency);
+    } else {
+      const periods = refinanceDto.paymentFrequency === PaymentFrequency.DAILY ? 30 : 4;
+      installmentValue = Math.ceil(totalWithInterest / periods);
+      endDate = this.calculateEndDate(collectionStartDate, periods, refinanceDto.paymentFrequency);
+    }
+
+    // Transacción para refinanciamiento
+    return this.prisma.$transaction(async (tx) => {
+      // Marcar préstamo anterior como PAID
+      await tx.loan.update({
+        where: { id: loanId },
+        data: { status: LoanStatus.PAID }
+      });
+
+      // Crear nuevo préstamo
+      const newLoan = await tx.loan.create({
+        data: {
+          tenantId,
+          clientId: previousLoan.clientId,
+          loanAmount: refinanceDto.newAmount,
+          receivedAmount,
+          totalDiscounts,
+          totalCosts,
+          disbursedAmount,
+          interestRate: refinanceDto.interestRate,
+          paymentFrequency: refinanceDto.paymentFrequency,
+          installmentValue,
+          pendingBalance: totalWithInterest,
+          disbursementDate,
+          collectionStartDate,
+          endDate,
+          originalEndDate: endDate,
+          status: LoanStatus.ACTIVE,
+          createdById: userId,
+          discounts: discountsCalculated.length > 0 ? { create: discountsCalculated } : undefined,
+          costs: costsCalculated.length > 0 ? { create: costsCalculated } : undefined,
+        },
+        include: {
+          client: true,
+          discounts: { include: { concept: true } },
+          costs: { include: { concept: true } },
+        },
+      });
+
+      // Crear registro de refinanciamiento
+      await tx.refinancing.create({
+        data: {
+          tenantId,
+          previousLoanId: loanId,
+          newLoanId: newLoan.id,
+          previousPendingBalance,
+          newAmount: refinanceDto.newAmount,
+          deliveredAmount,
+          refinancingReason: refinanceDto.refinancingReason,
+          createdById: userId,
+        },
+      });
+
+      return {
+        ...newLoan,
+        deliveredAmount,
+        previousLoan: {
+          id: previousLoan.id,
+          pendingBalance: previousPendingBalance,
+        },
+      };
+    });
   }
 }

@@ -1,15 +1,15 @@
-import { FrecuenciaPago } from '@prisma/client';
+import { PaymentFrequency } from '@prisma/client';
 import { addDaysToDate } from './date.helper';
 
-export function calculateLoanEndDate(startDate: Date, periods: number, frequency: FrecuenciaPago): Date {
-  const daysToAdd = frequency === FrecuenciaPago.DIARIO ? periods : periods * 7;
+export function calculateLoanEndDate(startDate: Date, periods: number, frequency: PaymentFrequency): Date {
+  const daysToAdd = frequency === PaymentFrequency.DAILY ? periods : periods * 7;
   return addDaysToDate(startDate, daysToAdd);
 }
 
-export function calculatePeriodsBetween(startDate: Date, endDate: Date, frequency: FrecuenciaPago): number {
+export function calculatePeriodsBetween(startDate: Date, endDate: Date, frequency: PaymentFrequency): number {
   const diffTime = endDate.getTime() - startDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  const periods = frequency === FrecuenciaPago.DIARIO ? diffDays : Math.ceil(diffDays / 7);
+  const periods = frequency === PaymentFrequency.DAILY ? diffDays : Math.ceil(diffDays / 7);
   return Math.max(1, periods);
 }
 

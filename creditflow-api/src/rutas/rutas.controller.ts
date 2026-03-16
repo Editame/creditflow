@@ -2,12 +2,13 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Pa
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RutasService } from './rutas.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentTenant } from '../common';
 import type { CreateRutaDto, UpdateRutaDto, PaginationParams } from '@creditflow/shared-types';
 
 @ApiTags('Rutas')
 @Controller('rutas')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class RutasController {
   constructor(private readonly rutasService: RutasService) {}

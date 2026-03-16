@@ -12,17 +12,17 @@ import { ConceptType } from '@prisma/client';
 
 export class CreateChargeConceptDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsNumber()
   @Type(() => Number)
   @Min(0)
   @Max(100)
-  percentage: number;
+  percentage!: number;
 
   @IsOptional()
   @IsEnum(ConceptType)
-  type?: ConceptType = ConceptType.DESCUENTO;
+  type?: ConceptType = ConceptType.DISCOUNT;
 
   @IsOptional()
   @IsBoolean()

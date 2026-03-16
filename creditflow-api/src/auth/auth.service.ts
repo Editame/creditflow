@@ -19,7 +19,12 @@ export class AuthService {
       include: { tenant: true },
     });
 
-    if (!user || !user.tenant.active) {
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Para SUPER_ADMIN, no validar tenant
+    if (user.role !== 'SUPER_ADMIN' && (!user.tenant || !user.tenant.active)) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -44,7 +49,7 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        tenantId: user.tenantId,
+        tenantId: user.tenantId || 'system',
         username: user.username,
         email: user.email,
         role: user.role as any,
@@ -59,6 +64,7 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      include: { tenant: true },
     });
 
     if (!user) {
@@ -67,7 +73,7 @@ export class AuthService {
 
     return {
       id: user.id,
-      tenantId: user.tenantId,
+      tenantId: user.tenantId || 'system',
       username: user.username,
       email: user.email,
       role: user.role,

@@ -216,7 +216,7 @@ export class ReportsService {
           where: {
             tenantId,
             client: { routeId: route.id },
-            status: { in: ['ACTIVO', 'MORA'] },
+            status: { in: ['ACTIVE', 'OVERDUE'] },
           },
           select: { installmentValue: true, paymentFrequency: true, collectionStartDate: true },
         });
@@ -224,15 +224,15 @@ export class ReportsService {
         let expected = 0;
         activeLoans.forEach((l) => {
           const daysSinceStart = Math.floor((targetDate.getTime() - new Date(l.collectionStartDate).getTime()) / (1000 * 60 * 60 * 24));
-          if (l.paymentFrequency === 'DIARIO' && daysSinceStart >= 0) {
+          if (l.paymentFrequency === 'DAILY' && daysSinceStart >= 0) {
             expected += Number(l.installmentValue);
-          } else if (l.paymentFrequency === 'SEMANAL' && daysSinceStart >= 0 && daysSinceStart % 7 === 0) {
+          } else if (l.paymentFrequency === 'WEEKLY' && daysSinceStart >= 0 && daysSinceStart % 7 === 0) {
             expected += Number(l.installmentValue);
           }
         });
 
         const overdueClients = await this.prisma.loan.count({
-          where: { client: { routeId: route.id }, status: 'MORA' },
+          where: { client: { routeId: route.id }, status: 'OVERDUE' },
         });
 
         const totalCollected = collected._sum.amountPaid?.toNumber() || 0;

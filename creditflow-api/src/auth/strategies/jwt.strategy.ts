@@ -29,8 +29,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       include: { tenant: true },
     });
 
-    if (!user || !user.active || !user.tenant.active) {
+    // Para SUPER_ADMIN, tenant puede ser null
+    if (!user || !user.active) {
       throw new UnauthorizedException('User not found or inactive');
+    }
+
+    // Validar tenant solo si no es SUPER_ADMIN
+    if (user.role !== 'SUPER_ADMIN' && (!user.tenant || !user.tenant.active)) {
+      throw new UnauthorizedException('Tenant not found or inactive');
     }
 
     return {

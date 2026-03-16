@@ -1,26 +1,13 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcrypt';
-
-interface CreateUserDto {
-  username: string;
-  email?: string;
-  password: string;
-  role: string;
-}
-
-interface UpdateUserDto {
-  email?: string;
-  password?: string;
-  role?: string;
-  active?: boolean;
-}
+import type { CreateUsuarioDto, UpdateUsuarioDto } from '@creditflow/shared-types';
 
 @Injectable()
 export class UsuariosService {
   constructor(private prisma: PrismaService) {}
 
-  async create(tenantId: string, createUserDto: CreateUserDto) {
+  async create(tenantId: string, createUserDto: CreateUsuarioDto) {
     const existing = await this.prisma.user.findUnique({
       where: {
         tenantId_username: {
@@ -92,7 +79,7 @@ export class UsuariosService {
     return user;
   }
 
-  async update(tenantId: string, id: number, updateUserDto: UpdateUserDto) {
+  async update(tenantId: string, id: number, updateUserDto: UpdateUsuarioDto) {
     await this.findOne(tenantId, id);
 
     const data: any = { ...updateUserDto };
