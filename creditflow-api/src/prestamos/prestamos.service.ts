@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, Inject, forwardRef, BadRequestException 
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
 import { PaymentFrequency, LoanStatus } from '@creditflow/shared-types';
-import type { CreateLoanDto, FilterPrestamoDto, RefinanceLoanDto } from '@creditflow/shared-types';
+import type { CreateLoanDto, FilterLoanDto, RefinanceLoanDto } from '@creditflow/shared-types';
 import { ChargeConceptsService } from '../charge-concepts/charge-concepts.service';
 import { addDaysToDate, calculatePeriodsElapsed } from '../common/helpers/date.helper';
 
@@ -14,9 +14,9 @@ export class PrestamosService {
     private chargeConceptsService: ChargeConceptsService,
   ) {}
 
-  async create(tenantId: string, createPrestamoDto: CreateLoanDto) {
+  async create(tenantId: string, createLoanDto: CreateLoanDto) {
     const client = await this.prisma.client.findFirst({
-      where: { id: createPrestamoDto.clientId, tenantId, active: true },
+      where: { id: createLoanDto.clientId, tenantId, active: true },
     });
 
     if (!client) throw new NotFoundException('Client not found or inactive');
@@ -24,8 +24,8 @@ export class PrestamosService {
     let totalDiscounts = 0;
     let discountsCalculated: Array<{ conceptId: number; discountAmount: number; percentage: number }> = [];
 
-    if (createPrestamoDto.discountConcepts && createPrestamoDto.discountConcepts.length > 0) {
-      const result = await this.chargeConceptsService.calculateDiscounts(tenantId, createPrestamoDto.loanAmount, createPrestamoDto.discountConcepts);
+    if (createLoanDto.discountConcepts && createLoanDto.discountConcepts.length > 0) {
+      const result = await this.chargeConceptsService.calculateDiscounts(tenantId, createLoanDto.loanAmount, createLoanDto.discountConcepts);
       totalDiscounts = result.totalDiscounts;
       discountsCalculated = result.calculatedDiscounts;
     }
@@ -33,47 +33,47 @@ export class PrestamosService {
     let totalCosts = 0;
     let costsCalculated: Array<{ conceptId: number; costAmount: number; percentage: number }> = [];
 
-    if (createPrestamoDto.costConcepts && createPrestamoDto.costConcepts.length > 0) {
-      const result = await this.chargeConceptsService.calculateCosts(tenantId, createPrestamoDto.loanAmount, createPrestamoDto.costConcepts);
+    if (createLoanDto.costConcepts && createLoanDto.costConcepts.length > 0) {
+      const result = await this.chargeConceptsService.calculateCosts(tenantId, createLoanDto.loanAmount, createLoanDto.costConcepts);
       totalCosts = result.totalCosts;
       costsCalculated = result.calculatedCosts;
     }
 
-    const receivedAmount = createPrestamoDto.loanAmount - totalDiscounts;
+    const receivedAmount = createLoanDto.loanAmount - totalDiscounts;
     const disbursedAmount = receivedAmount + totalCosts;
-    const totalWithInterest = createPrestamoDto.loanAmount * (1 + createPrestamoDto.interestRate / 100);
+    const totalWithInterest = createLoanDto.loanAmount * (1 + createLoanDto.interestRate / 100);
 
-    const disbursementDate = new Date(createPrestamoDto.disbursementDate);
-    const collectionStartDate = createPrestamoDto.collectionStartDate ? new Date(createPrestamoDto.collectionStartDate) : new Date(disbursementDate.getTime() + 24 * 60 * 60 * 1000);
+    const disbursementDate = new Date(createLoanDto.disbursementDate);
+    const collectionStartDate = createLoanDto.collectionStartDate ? new Date(createLoanDto.collectionStartDate) : new Date(disbursementDate.getTime() + 24 * 60 * 60 * 1000);
 
     let endDate: Date;
     let installmentValue: number;
 
-    if (createPrestamoDto.endDate) {
-      endDate = new Date(createPrestamoDto.endDate);
-      const periods = this.calculatePeriodsBetweenDates(collectionStartDate, endDate, createPrestamoDto.paymentFrequency);
+    if (createLoanDto.endDate) {
+      endDate = new Date(createLoanDto.endDate);
+      const periods = this.calculatePeriodsBetweenDates(collectionStartDate, endDate, createLoanDto.paymentFrequency as PaymentFrequency);
       installmentValue = periods > 0 ? Math.ceil(totalWithInterest / periods) : totalWithInterest;
-    } else if (createPrestamoDto.installmentValue) {
-      installmentValue = createPrestamoDto.installmentValue;
+    } else if (createLoanDto.installmentValue) {
+      installmentValue = createLoanDto.installmentValue;
       const numInstallments = Math.ceil(totalWithInterest / installmentValue);
-      endDate = this.calculateEndDate(collectionStartDate, numInstallments, createPrestamoDto.paymentFrequency);
+      endDate = this.calculateEndDate(collectionStartDate, numInstallments, createLoanDto.paymentFrequency as PaymentFrequency);
     } else {
-      const periods = createPrestamoDto.paymentFrequency === PaymentFrequency.DAILY ? 30 : 4;
+      const periods = createLoanDto.paymentFrequency === 'DAILY' ? 30 : 4;
       installmentValue = Math.ceil(totalWithInterest / periods);
-      endDate = this.calculateEndDate(collectionStartDate, periods, createPrestamoDto.paymentFrequency);
+      endDate = this.calculateEndDate(collectionStartDate, periods, createLoanDto.paymentFrequency as PaymentFrequency);
     }
 
     return this.prisma.loan.create({
       data: {
         tenantId,
-        clientId: createPrestamoDto.clientId,
-        loanAmount: createPrestamoDto.loanAmount,
+        clientId: createLoanDto.clientId,
+        loanAmount: createLoanDto.loanAmount,
         receivedAmount,
         totalDiscounts,
         totalCosts,
         disbursedAmount,
-        interestRate: createPrestamoDto.interestRate,
-        paymentFrequency: createPrestamoDto.paymentFrequency,
+        interestRate: createLoanDto.interestRate,
+        paymentFrequency: createLoanDto.paymentFrequency as PaymentFrequency,
         installmentValue,
         pendingBalance: totalWithInterest,
         disbursementDate,
@@ -92,12 +92,12 @@ export class PrestamosService {
     });
   }
 
-  async findAll(tenantId: string, filters: FilterPrestamoDto) {
+  async findAll(tenantId: string, filters: FilterLoanDto) {
     const { skip, take } = getPaginationParams(filters);
     
     const where: Record<string, unknown> = { tenantId };
-    if (filters.clienteId) where.clientId = filters.clienteId;
-    if (filters.estado) where.status = filters.estado;
+    if (filters.clientId) where.clientId = filters.clientId;
+    if (filters.status) where.status = filters.status;
 
     const [data, total] = await Promise.all([
       this.prisma.loan.findMany({
@@ -274,16 +274,16 @@ export class PrestamosService {
 
     if (refinanceDto.endDate) {
       endDate = new Date(refinanceDto.endDate);
-      const periods = this.calculatePeriodsBetweenDates(collectionStartDate, endDate, refinanceDto.paymentFrequency);
+      const periods = this.calculatePeriodsBetweenDates(collectionStartDate, endDate, refinanceDto.paymentFrequency as PaymentFrequency);
       installmentValue = periods > 0 ? Math.ceil(totalWithInterest / periods) : totalWithInterest;
     } else if (refinanceDto.installmentValue) {
       installmentValue = refinanceDto.installmentValue;
       const numInstallments = Math.ceil(totalWithInterest / installmentValue);
-      endDate = this.calculateEndDate(collectionStartDate, numInstallments, refinanceDto.paymentFrequency);
+      endDate = this.calculateEndDate(collectionStartDate, numInstallments, refinanceDto.paymentFrequency as PaymentFrequency);
     } else {
-      const periods = refinanceDto.paymentFrequency === PaymentFrequency.DAILY ? 30 : 4;
+      const periods = refinanceDto.paymentFrequency === 'DAILY' ? 30 : 4;
       installmentValue = Math.ceil(totalWithInterest / periods);
-      endDate = this.calculateEndDate(collectionStartDate, periods, refinanceDto.paymentFrequency);
+      endDate = this.calculateEndDate(collectionStartDate, periods, refinanceDto.paymentFrequency as PaymentFrequency);
     }
 
     // Transacción para refinanciamiento
@@ -305,7 +305,7 @@ export class PrestamosService {
           totalCosts,
           disbursedAmount,
           interestRate: refinanceDto.interestRate,
-          paymentFrequency: refinanceDto.paymentFrequency,
+          paymentFrequency: refinanceDto.paymentFrequency as PaymentFrequency,
           installmentValue,
           pendingBalance: totalWithInterest,
           disbursementDate,

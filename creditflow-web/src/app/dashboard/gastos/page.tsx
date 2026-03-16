@@ -8,11 +8,11 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { api } from '@/lib/api';
-import { Gasto } from '@creditflow/shared-types';
+import { Expense } from '@creditflow/shared-types';
 import { Plus, Receipt, Calendar, Tag, Edit, Trash2 } from 'lucide-react';
 
 export default function GastosPage() {
-  const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [gastos, setGastos] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export default function GastosPage() {
 
   const loadGastos = async () => {
     try {
-      const response = await api.gastos.getAll();
+      const response = await api.expenses.getAll();
       setGastos(response);
     } catch (error) {
       console.error('Error loading gastos:', error);
@@ -49,9 +49,9 @@ export default function GastosPage() {
         category: formData.categoria,
       };
       if (editingId) {
-        await api.gastos.update(parseInt(editingId), payload);
+        await api.expenses.update(parseInt(editingId), payload);
       } else {
-        await api.gastos.create(payload);
+        await api.expenses.create(payload);
       }
       resetForm();
       loadGastos();
@@ -62,7 +62,7 @@ export default function GastosPage() {
     }
   };
 
-  const handleEdit = (gasto: Gasto) => {
+  const handleEdit = (gasto: Expense) => {
     setFormData({
       descripcion: gasto.description,
       monto: gasto.amount.toString(),
@@ -75,7 +75,7 @@ export default function GastosPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar este gasto?')) return;
     try {
-      await api.gastos.delete(id);
+      await api.expenses.delete(id);
       loadGastos();
       success('Gasto eliminado');
     } catch (err) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { prestamosApi } from '@/lib/api';
+import { loansApi } from '@/lib/api';
 import { formatTimeInTimezone, formatDateShort, formatBusinessDate } from '@/lib/timezone';
 import {
   ArrowLeft,
@@ -28,7 +28,7 @@ export default function PrestamoDetallePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await prestamosApi.getOne(prestamoId);
+        const res = await loansApi.getOne(prestamoId);
         const prestamoData = res as any;
         setPrestamo(prestamoData);
         

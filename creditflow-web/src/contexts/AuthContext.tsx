@@ -4,10 +4,10 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { api } from '@/lib/api';
-import type { Usuario, LoginDto } from '@creditflow/shared-types';
+import type { User, LoginDto } from '@creditflow/shared-types';
 
 interface AuthContextType {
-  user: Usuario | null;
+  user: User | null;
   isLoading: boolean;
   login: (credentials: LoginDto) => Promise<void>;
   logout: () => void;
@@ -16,7 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Usuario | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 

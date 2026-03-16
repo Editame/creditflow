@@ -5,23 +5,30 @@ import type {
   PaginatedResponse,
   LoginDto, 
   AuthResponse,
-  Usuario,
-  Ruta,
-  CreateRutaDto,
-  UpdateRutaDto,
-  Cliente,
-  CreateClienteDto,
-  UpdateClienteDto,
-  FilterClienteDto,
-  Prestamo,
-  CreatePrestamoDto,
-  FilterPrestamoDto,
-  Pago,
-  CreatePagoDto,
-  FilterPagoDto,
-  Gasto,
-  CreateGastoDto,
-  FilterGastoDto,
+  User,
+  CreateUserDto,
+  UpdateUserDto,
+  Route,
+  CreateRouteDto,
+  UpdateRouteDto,
+  Client,
+  CreateClientDto,
+  UpdateClientDto,
+  FilterClientDto,
+  Loan,
+  CreateLoanDto,
+  RefinanceLoanDto,
+  FilterLoanDto,
+  Payment,
+  CreatePaymentDto,
+  FilterPaymentDto,
+  Expense,
+  CreateExpenseDto,
+  UpdateExpenseDto,
+  FilterExpenseDto,
+  ChargeConcept,
+  CreateChargeConceptDto,
+  UpdateChargeConceptDto,
   PaginationParams
 } from '@creditflow/shared-types';
 
@@ -66,28 +73,51 @@ class ApiClient {
       const { data } = await this.client.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
       return data.data;
     },
-    getProfile: async (): Promise<Usuario> => {
-      const { data } = await this.client.get<ApiResponse<Usuario>>('/auth/profile');
+    getProfile: async (): Promise<User> => {
+      const { data } = await this.client.get<ApiResponse<User>>('/auth/profile');
       return data.data;
     },
   };
 
-  // Rutas
-  rutas = {
-    getAll: async (params?: PaginationParams): Promise<Ruta[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Ruta>>('/rutas', { params });
+  // Users
+  users = {
+    getAll: async (params?: PaginationParams): Promise<User[]> => {
+      const { data } = await this.client.get<PaginatedResponse<User>>('/usuarios', { params });
       return data.data;
     },
-    getOne: async (id: number): Promise<Ruta> => {
-      const { data } = await this.client.get<Ruta>(`/rutas/${id}`);
+    getOne: async (id: number): Promise<User> => {
+      const { data } = await this.client.get<User>(`/usuarios/${id}`);
       return data;
     },
-    create: async (dto: CreateRutaDto): Promise<Ruta> => {
-      const { data } = await this.client.post<Ruta>('/rutas', dto);
+    create: async (dto: CreateUserDto): Promise<User> => {
+      const { data } = await this.client.post<User>('/usuarios', dto);
       return data;
     },
-    update: async (id: number, dto: UpdateRutaDto): Promise<Ruta> => {
-      const { data } = await this.client.patch<Ruta>(`/rutas/${id}`, dto);
+    update: async (id: number, dto: UpdateUserDto): Promise<User> => {
+      const { data } = await this.client.patch<User>(`/usuarios/${id}`, dto);
+      return data;
+    },
+    delete: async (id: number): Promise<void> => {
+      await this.client.delete(`/usuarios/${id}`);
+    },
+  };
+
+  // Routes
+  routes = {
+    getAll: async (params?: PaginationParams): Promise<Route[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Route>>('/rutas', { params });
+      return data.data;
+    },
+    getOne: async (id: number): Promise<Route> => {
+      const { data } = await this.client.get<Route>(`/rutas/${id}`);
+      return data;
+    },
+    create: async (dto: CreateRouteDto): Promise<Route> => {
+      const { data } = await this.client.post<Route>('/rutas', dto);
+      return data;
+    },
+    update: async (id: number, dto: UpdateRouteDto): Promise<Route> => {
+      const { data } = await this.client.patch<Route>(`/rutas/${id}`, dto);
       return data;
     },
     delete: async (id: number): Promise<void> => {
@@ -95,22 +125,22 @@ class ApiClient {
     },
   };
 
-  // Clientes
-  clientes = {
-    getAll: async (filters?: FilterClienteDto): Promise<Cliente[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Cliente>>('/clientes', { params: filters });
+  // Clients
+  clients = {
+    getAll: async (filters?: FilterClientDto): Promise<Client[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Client>>('/clientes', { params: filters });
       return data.data;
     },
-    getOne: async (id: number): Promise<Cliente> => {
-      const { data } = await this.client.get<Cliente>(`/clientes/${id}`);
+    getOne: async (id: number): Promise<Client> => {
+      const { data } = await this.client.get<Client>(`/clientes/${id}`);
       return data;
     },
-    create: async (dto: CreateClienteDto): Promise<Cliente> => {
-      const { data } = await this.client.post<Cliente>('/clientes', dto);
+    create: async (dto: CreateClientDto): Promise<Client> => {
+      const { data } = await this.client.post<Client>('/clientes', dto);
       return data;
     },
-    update: async (id: number, dto: UpdateClienteDto): Promise<Cliente> => {
-      const { data } = await this.client.patch<Cliente>(`/clientes/${id}`, dto);
+    update: async (id: number, dto: UpdateClientDto): Promise<Client> => {
+      const { data } = await this.client.patch<Client>(`/clientes/${id}`, dto);
       return data;
     },
     delete: async (id: number): Promise<void> => {
@@ -118,50 +148,50 @@ class ApiClient {
     },
   };
 
-  // Prestamos
-  prestamos = {
-    getAll: async (filters?: FilterPrestamoDto): Promise<Prestamo[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Prestamo>>('/prestamos', { params: filters });
+  // Loans
+  loans = {
+    getAll: async (filters?: FilterLoanDto): Promise<Loan[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Loan>>('/prestamos', { params: filters });
       return data.data;
     },
-    getOne: async (id: number): Promise<Prestamo> => {
-      const { data } = await this.client.get<Prestamo>(`/prestamos/${id}`);
+    getOne: async (id: number): Promise<Loan> => {
+      const { data } = await this.client.get<Loan>(`/prestamos/${id}`);
       return data;
     },
-    create: async (dto: CreatePrestamoDto): Promise<Prestamo> => {
-      const { data } = await this.client.post<Prestamo>('/prestamos', dto);
+    create: async (dto: CreateLoanDto): Promise<Loan> => {
+      const { data } = await this.client.post<Loan>('/prestamos', dto);
       return data;
     },
-    refinance: async (id: number, dto: any): Promise<any> => {
+    refinance: async (id: number, dto: RefinanceLoanDto): Promise<any> => {
       const { data } = await this.client.post(`/prestamos/${id}/refinanciar`, dto);
       return data;
     },
   };
 
-  // Pagos
-  pagos = {
-    getAll: async (filters?: FilterPagoDto): Promise<Pago[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Pago>>('/pagos', { params: filters });
+  // Payments
+  payments = {
+    getAll: async (filters?: FilterPaymentDto): Promise<Payment[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Payment>>('/pagos', { params: filters });
       return data.data;
     },
-    create: async (dto: CreatePagoDto): Promise<Pago> => {
-      const { data } = await this.client.post<Pago>('/pagos', dto);
+    create: async (dto: CreatePaymentDto): Promise<Payment> => {
+      const { data } = await this.client.post<Payment>('/pagos', dto);
       return data;
     },
   };
 
-  // Gastos
-  gastos = {
-    getAll: async (filters?: FilterGastoDto): Promise<Gasto[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Gasto>>('/gastos', { params: filters });
+  // Expenses
+  expenses = {
+    getAll: async (filters?: FilterExpenseDto): Promise<Expense[]> => {
+      const { data } = await this.client.get<PaginatedResponse<Expense>>('/gastos', { params: filters });
       return data.data;
     },
-    create: async (dto: CreateGastoDto): Promise<Gasto> => {
-      const { data } = await this.client.post<Gasto>('/gastos', dto);
+    create: async (dto: CreateExpenseDto): Promise<Expense> => {
+      const { data } = await this.client.post<Expense>('/gastos', dto);
       return data;
     },
-    update: async (id: number, dto: Partial<CreateGastoDto>): Promise<Gasto> => {
-      const { data } = await this.client.patch<Gasto>(`/gastos/${id}`, dto);
+    update: async (id: number, dto: UpdateExpenseDto): Promise<Expense> => {
+      const { data } = await this.client.patch<Expense>(`/gastos/${id}`, dto);
       return data;
     },
     delete: async (id: number): Promise<void> => {
@@ -171,13 +201,20 @@ class ApiClient {
 
   // Charge Concepts
   chargeConcepts = {
-    getAll: async (): Promise<any[]> => {
+    getAll: async (): Promise<ChargeConcept[]> => {
       const { data } = await this.client.get('/charge-concepts');
       return data.data || data;
     },
-    create: async (dto: any): Promise<any> => {
+    create: async (dto: CreateChargeConceptDto): Promise<ChargeConcept> => {
       const { data } = await this.client.post('/charge-concepts', dto);
       return data;
+    },
+    update: async (id: number, dto: UpdateChargeConceptDto): Promise<ChargeConcept> => {
+      const { data } = await this.client.patch(`/charge-concepts/${id}`, dto);
+      return data;
+    },
+    delete: async (id: number): Promise<void> => {
+      await this.client.delete(`/charge-concepts/${id}`);
     },
   };
 
@@ -225,10 +262,12 @@ class ApiClient {
 
 export const api = new ApiClient();
 
-// Export individual APIs for backward compatibility
-export const clientesApi = api.clientes;
-export const prestamosApi = api.prestamos;
-export const pagosApi = api.pagos;
-export const gastosApi = api.gastos;
-export const rutasApi = api.rutas;
-export const conceptosCobroApi = api.chargeConcepts;
+// Export individual APIs
+export const authApi = api.auth;
+export const usersApi = api.users;
+export const routesApi = api.routes;
+export const clientsApi = api.clients;
+export const loansApi = api.loans;
+export const paymentsApi = api.payments;
+export const expensesApi = api.expenses;
+export const chargeConceptsApi = api.chargeConcepts;

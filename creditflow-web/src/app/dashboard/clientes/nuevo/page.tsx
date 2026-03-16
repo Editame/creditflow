@@ -38,7 +38,7 @@ export default function NuevoClientePage() {
   useEffect(() => {
     const fetchRutas = async () => {
       try {
-        const res = await api.rutas.getAll();
+        const res = await api.routes.getAll();
         const data = res;
         setRutas(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -60,7 +60,7 @@ export default function NuevoClientePage() {
     setIsLoading(true);
 
     try {
-      await api.clientes.create({
+      await api.clients.create({
         routeId: parseInt(formData.routeId),
         idNumber: formData.idNumber,
         fullName: formData.fullName,

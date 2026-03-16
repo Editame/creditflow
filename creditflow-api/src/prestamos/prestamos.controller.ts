@@ -4,7 +4,7 @@ import { PrestamosService } from './prestamos.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentTenant, CurrentUser } from '../common';
-import type { CreatePrestamoDto, FilterPrestamoDto, RefinancePrestamoDto } from '@creditflow/shared-types';
+import type { CreateLoanDto, FilterLoanDto, RefinanceLoanDto } from '@creditflow/shared-types';
 
 @ApiTags('Prestamos')
 @Controller('prestamos')
@@ -14,12 +14,12 @@ export class PrestamosController {
   constructor(private readonly prestamosService: PrestamosService) {}
 
   @Post()
-  create(@CurrentTenant() tenantId: string, @Body() createPrestamoDto: CreatePrestamoDto) {
-    return this.prestamosService.create(tenantId, createPrestamoDto);
+  create(@CurrentTenant() tenantId: string, @Body() createLoanDto: CreateLoanDto) {
+    return this.prestamosService.create(tenantId, createLoanDto);
   }
 
   @Get()
-  findAll(@CurrentTenant() tenantId: string, @Query() filters: FilterPrestamoDto) {
+  findAll(@CurrentTenant() tenantId: string, @Query() filters: FilterLoanDto) {
     return this.prestamosService.findAll(tenantId, filters);
   }
 
@@ -32,7 +32,7 @@ export class PrestamosController {
   refinance(
     @CurrentTenant() tenantId: string,
     @Param('id', ParseIntPipe) id: number,
-    @Body() refinanceDto: RefinancePrestamoDto,
+    @Body() refinanceDto: RefinanceLoanDto,
     @CurrentUser() user: any
   ) {
     return this.prestamosService.refinance(tenantId, id, refinanceDto, user.id);

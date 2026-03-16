@@ -23,14 +23,14 @@ export default function ReportesPage() {
   const loadStats = async () => {
     try {
       const [clientes, prestamos, pagos, gastos] = await Promise.all([
-        api.clientes.getAll(),
-        api.prestamos.getAll(),
-        api.pagos.getAll(),
-        api.gastos.getAll(),
+        api.clients.getAll(),
+        api.loans.getAll(),
+        api.payments.getAll(),
+        api.expenses.getAll(),
       ]);
 
-      const activos = prestamos.filter(p => p.estado === 'ACTIVO');
-      const montoTotal = prestamos.reduce((sum, p) => sum + p.monto, 0);
+      const activos = prestamos.filter((p: any) => p.status === 'ACTIVE');
+      const montoTotal = prestamos.reduce((sum: number, p: any) => sum + Number(p.loanAmount), 0);
 
       setStats({
         totalClientes: clientes.length,

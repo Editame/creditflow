@@ -14,8 +14,7 @@ import {
   X,
   Calendar,
   BarChart3,
-  Building2,
-  Settings
+  Building2
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,6 +28,11 @@ const menuItems = [
   { icon: Receipt, label: 'Gastos', href: '/dashboard/gastos' },
   { icon: Calendar, label: 'Cobranza', href: '/dashboard/cobranza' },
   { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes' },
+];
+
+// Elementos del menú solo para administradores
+const adminMenuItems = [
+  { icon: Building2, label: 'Gestión', href: '/dashboard/gestion' },
 ];
 
 export function Sidebar() {
@@ -116,6 +120,47 @@ export function Sidebar() {
                 </Link>
               );
             })}
+            
+            {/* Admin Menu Items */}
+            {user && ['SUPER_ADMIN', 'ADMIN'].includes(user.role) && (
+              <>
+                <div className="border-t border-slate-200 my-2"></div>
+                <div className="px-4 py-2">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Administración</p>
+                </div>
+                {adminMenuItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`
+                        flex items-center gap-3 px-4 py-3 rounded-xl
+                        transition-all duration-200 group
+                        ${isActive 
+                          ? 'bg-gradient-to-r from-orange-100 to-orange-50 text-orange-800 font-semibold border border-orange-200 shadow-sm' 
+                          : 'text-slate-600 hover:bg-orange-50 hover:text-orange-800'
+                        }
+                      `}
+                    >
+                      <Icon 
+                        size={20} 
+                        className={`transition-colors ${
+                          isActive ? 'text-orange-700' : 'text-slate-500 group-hover:text-orange-700'
+                        }`} 
+                      />
+                      <span>{item.label}</span>
+                      {isActive && (
+                        <div className="ml-auto w-2 h-2 bg-orange-600 rounded-full"></div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
 
           {/* Plan Info */}

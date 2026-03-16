@@ -7,12 +7,9 @@ import {
   ArrowLeft,
   MapPin,
   Users,
-  DollarSign,
   Plus,
   ChevronRight,
   TrendingUp,
-  Wallet,
-  Receipt,
   Trash2
 } from 'lucide-react';
 import Link from 'next/link';
@@ -32,8 +29,8 @@ export default function RutaDetallePage() {
     const fetchData = async () => {
       try {
         const [rutaRes, clientesRes] = await Promise.all([
-          api.rutas.getOne(rutaId),
-          api.clientes.getAll(),
+          api.routes.getOne(rutaId),
+          api.clients.getAll(),
         ]);
         
         setRuta(rutaRes);
@@ -43,7 +40,7 @@ export default function RutaDetallePage() {
           active: rutaRes.active !== false,
         });
         
-        const clientesData = Array.isArray(clientesRes) ? clientesRes : clientesRes.data || [];
+        const clientesData = Array.isArray(clientesRes) ? clientesRes : [];
         // Filtrar clientes de esta ruta
         setClientes(clientesData.filter((c: any) => c.routeId === rutaId));
       } catch (error) {
@@ -58,8 +55,8 @@ export default function RutaDetallePage() {
 
   const handleUpdate = async () => {
     try {
-      await api.rutas.update(rutaId, formData);
-      const res = await api.rutas.getOne(rutaId);
+      await api.routes.update(rutaId, formData);
+      const res = await api.routes.getOne(rutaId);
       setRuta(res);
       setShowEditModal(false);
     } catch (error) {
@@ -70,7 +67,7 @@ export default function RutaDetallePage() {
   const handleDelete = async () => {
     if (!confirm('¿Eliminar esta ruta?')) return;
     try {
-      await api.rutas.delete(rutaId);
+      await api.routes.delete(rutaId);
       router.push('/dashboard/rutas');
     } catch (error) {
       console.error('Error deleting ruta:', error);

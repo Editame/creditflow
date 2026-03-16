@@ -8,11 +8,11 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { api } from '@/lib/api';
-import { Pago } from '@creditflow/shared-types';
+import { Payment } from '@creditflow/shared-types';
 import { Plus, DollarSign, Calendar, CreditCard, CheckCircle } from 'lucide-react';
 
 export default function PagosPage() {
-  const [pagos, setPagos] = useState<Pago[]>([]);
+  const [pagos, setPagos] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const { toasts, removeToast, success, error } = useToast();
@@ -28,7 +28,7 @@ export default function PagosPage() {
 
   const loadPagos = async () => {
     try {
-      const response = await api.pagos.getAll();
+      const response = await api.payments.getAll();
       setPagos(response);
     } catch (error) {
       console.error('Error loading pagos:', error);
@@ -41,9 +41,9 @@ export default function PagosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.pagos.create({
+      await api.payments.create({
         loanId: parseInt(formData.prestamoId),
-        paidAmount: parseFloat(formData.monto),
+        amountPaid: parseFloat(formData.monto),
       });
       resetForm();
       loadPagos();
@@ -143,15 +143,15 @@ export default function PagosPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Monto:</span>
-                      <span className="font-semibold text-green-600 text-lg">${Number((pago as any).amountPaid).toLocaleString()}</span>
+                      <span className="font-semibold text-green-600 text-lg">${Number(pago.amountPaid).toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <CreditCard className="w-4 h-4" />
-                      <span>{(pago as any).paidBy}</span>
+                      <span>{pago.paidBy}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      <span>{new Date((pago as any).paymentDate).toLocaleDateString()}</span>
+                      <span>{new Date(pago.paymentDate).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>

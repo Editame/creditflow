@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { prestamosApi } from '@/lib/api';
+import { api } from '@/lib/api';
 import { ArrowLeft, DollarSign, RefreshCw } from 'lucide-react';
 
 export default function RefinanciarPrestamoPage() {
@@ -107,7 +107,7 @@ export default function RefinanciarPrestamoPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const prestamoRes = await prestamosApi.getOne(prestamoId);
+        const prestamoRes = await api.loans.getOne(prestamoId);
         const prestamoData = prestamoRes;
         setPrestamo(prestamoData);
         
@@ -135,13 +135,13 @@ export default function RefinanciarPrestamoPage() {
       const conceptosDescuento = selectedConceptos.length > 0 ? selectedConceptos.map((c) => {
         if (c.montoFijo !== undefined && c.montoFijo !== null) {
           return {
-            conceptoId: c.conceptoId,
-            montoFijo: typeof c.montoFijo === 'string' ? parseFloat(c.montoFijo) || 0 : c.montoFijo,
+            conceptId: c.conceptoId,
+            fixedAmount: typeof c.montoFijo === 'string' ? parseFloat(c.montoFijo) || 0 : c.montoFijo,
           };
         } else {
           return {
-            conceptoId: c.conceptoId,
-            porcentaje: typeof c.porcentaje === 'string' ? parseFloat(c.porcentaje) || 0 : c.porcentaje || 0,
+            conceptId: c.conceptoId,
+            percentage: typeof c.porcentaje === 'string' ? parseFloat(c.porcentaje) || 0 : c.porcentaje || 0,
           };
         }
       }) : [];
@@ -149,19 +149,19 @@ export default function RefinanciarPrestamoPage() {
       const conceptosCosto = selectedCostos.length > 0 ? selectedCostos.map((c) => {
         if (c.montoFijo !== undefined && c.montoFijo !== null) {
           return {
-            conceptoId: c.conceptoId,
-            montoFijo: typeof c.montoFijo === 'string' ? parseFloat(c.montoFijo) || 0 : c.montoFijo,
+            conceptId: c.conceptoId,
+            fixedAmount: typeof c.montoFijo === 'string' ? parseFloat(c.montoFijo) || 0 : c.montoFijo,
           };
         } else {
           return {
-            conceptoId: c.conceptoId,
-            porcentaje: typeof c.porcentaje === 'string' ? parseFloat(c.porcentaje) || 0 : c.porcentaje || 0,
+            conceptId: c.conceptoId,
+            percentage: typeof c.porcentaje === 'string' ? parseFloat(c.porcentaje) || 0 : c.porcentaje || 0,
           };
         }
       }) : [];
 
       // TODO: Implement refinanciar endpoint in backend
-      await prestamosApi.refinance(prestamoId, {
+      await api.loans.refinance(prestamoId, {
         newAmount: parseFloat(formData.montoNuevo),
         interestRate: calculateTasaInteres(),
         paymentFrequency: formData.frecuenciaPago === 'DIARIO' ? 'DAILY' : 'WEEKLY',

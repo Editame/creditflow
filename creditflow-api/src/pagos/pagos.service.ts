@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
 import { LoanStatus } from '@creditflow/shared-types';
-import type { CreatePaymentDto, FilterPagoDto } from '@creditflow/shared-types';
+import type { CreatePaymentDto, FilterPaymentDto } from '@creditflow/shared-types';
 import { getTodayRangeInTimezone, getDateRangeInTimezone, getTodayString, getTodayInTimezone, aplicaCobroHoy, calculatePeriodsElapsed } from '../common/helpers/date.helper';
 import { calculateLoanEndDate, calculateRemainingQuotas } from '../common/helpers/loan.helper';
 
@@ -10,9 +10,9 @@ import { calculateLoanEndDate, calculateRemainingQuotas } from '../common/helper
 export class PagosService {
   constructor(private prisma: PrismaService) {}
 
-  async create(tenantId: string, userId: number, createPagoDto: CreatePaymentDto) {
+  async create(tenantId: string, userId: number, createPaymentDto: CreatePaymentDto) {
     const loan = await this.prisma.loan.findFirst({
-      where: { id: createPagoDto.loanId, tenantId },
+      where: { id: createPaymentDto.loanId, tenantId },
       include: { client: true },
     });
 
@@ -21,9 +21,9 @@ export class PagosService {
 
     const pendingBalance = Number(loan.pendingBalance);
     const installmentValue = Number(loan.installmentValue);
-    const paymentAmount = createPagoDto.paidAmount;
+    const paymentAmount = createPaymentDto.amountPaid;
 
-    if (paymentAmount === 0 && !createPagoDto.notes?.trim()) {
+    if (paymentAmount === 0 && !createPaymentDto.notes?.trim()) {
       throw new BadRequestException('Notes required when payment is 0');
     }
 
@@ -39,12 +39,12 @@ export class PagosService {
       const payment = await tx.payment.create({
         data: {
           tenantId,
-          loanId: createPagoDto.loanId,
+          loanId: createPaymentDto.loanId,
           collectorId: userId,
           routeId: loan.client.routeId,
           amountPaid: paymentAmount,
-          paidBy: createPagoDto.paidBy || 'CLIENT',
-          notes: createPagoDto.notes,
+          paidBy: createPaymentDto.paidBy || 'CLIENT',
+          notes: createPaymentDto.notes,
         },
       });
 
@@ -56,7 +56,7 @@ export class PagosService {
         newStatus = LoanStatus.PAID;
       } else {
         const totalPaid = await tx.payment.aggregate({
-          where: { loanId: createPagoDto.loanId },
+          where: { loanId: createPaymentDto.loanId },
           _sum: { amountPaid: true },
         });
 
@@ -73,7 +73,7 @@ export class PagosService {
       }
 
       await tx.loan.update({
-        where: { id: createPagoDto.loanId },
+        where: { id: createPaymentDto.loanId },
         data: { pendingBalance: newBalance, status: newStatus, endDate: newEndDate },
       });
 
@@ -81,13 +81,13 @@ export class PagosService {
     });
   }
 
-  async findAll(tenantId: string, filters: FilterPagoDto) {
+  async findAll(tenantId: string, filters: FilterPaymentDto) {
     const { skip, take } = getPaginationParams(filters);
     
     const where: Record<string, unknown> = { tenantId };
-    if (filters.rutaId) where.routeId = filters.rutaId;
-    if (filters.fecha) {
-      const { start, end } = getDateRangeInTimezone(filters.fecha);
+    if (filters.routeId) where.routeId = filters.routeId;
+    if (filters.date) {
+      const { start, end } = getDateRangeInTimezone(filters.date);
       where.paymentDate = { gte: start, lt: end };
     }
 

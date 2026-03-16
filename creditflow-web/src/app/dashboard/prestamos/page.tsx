@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { prestamosApi, rutasApi } from '@/lib/api';
+import { loansApi, routesApi } from '@/lib/api';
 import { formatBusinessDate } from '@/lib/timezone';
 import {
   ArrowLeft,
@@ -39,7 +39,7 @@ export default function PrestamosPage() {
   useEffect(() => {
     const fetchPrestamos = async () => {
       try {
-        const allRes = await prestamosApi.getAll({ limit: 1000 });
+        const allRes = await loansApi.getAll({ limit: 1000 });
         const allData = allRes;
         setPrestamos(Array.isArray(allData) ? allData : []);
       } catch (error) {
@@ -50,7 +50,7 @@ export default function PrestamosPage() {
     };
     const fetchRutas = async () => {
       try {
-        const res = await rutasApi.getAll();
+        const res = await routesApi.getAll();
         const data = res;
         setRutas(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -346,7 +346,7 @@ export default function PrestamosPage() {
         ) : (
           viewMode === 'grouped' ? (
             <div className="space-y-3">
-              {Object.values(prestamosPorCliente).slice(startIndex, endIndex).map(({ cliente, prestamos: clientPrestamos, stats }) => {
+              {(Object.values(prestamosPorCliente) as Array<{ cliente: any; prestamos: any[]; stats: any }>).slice(startIndex, endIndex).map(({ cliente, prestamos: clientPrestamos, stats }) => {
                 const isCollapsed = collapsedClients.has(cliente.id);
                 const totalPrestado = clientPrestamos.reduce((sum, p) => sum + Number(p.montoPrestado), 0);
                 const totalSaldo = clientPrestamos.reduce((sum, p) => sum + Number(p.saldoPendiente), 0);

@@ -17,10 +17,10 @@ const VisualIdentifier: React.FC<VisualIdentifierProps> = ({
   variant = 'user'
 }) => {
   const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16'
+    sm: 'w-8 h-8 text-xs',
+    md: 'w-10 h-10 text-sm',
+    lg: 'w-12 h-12 text-base',
+    xl: 'w-16 h-16 text-xl'
   };
   
   const iconSizes = {
@@ -30,7 +30,19 @@ const VisualIdentifier: React.FC<VisualIdentifierProps> = ({
     xl: 'w-8 h-8'
   };
   
-  const bgClass = 'bg-purple-500 text-white';
+  // Diferentes colores según el variant
+  const variantClasses = {
+    user: 'bg-blue-500 text-white',
+    client: 'bg-purple-500 text-white',
+    route: 'bg-green-500 text-white',
+    role: 'bg-orange-500 text-white'
+  };
+  
+  const bgClass = variantClasses[variant];
+  
+  // Si hay nombre, mostrar la inicial, sino mostrar icono
+  const showInitial = name && name.trim().length > 0;
+  const initial = showInitial ? name.trim().charAt(0).toUpperCase() : null;
   
   return (
     <div 
@@ -45,10 +57,15 @@ const VisualIdentifier: React.FC<VisualIdentifierProps> = ({
         transition-all
         duration-200
         hover:shadow-md
+        font-semibold
         ${className}
       `}
     >
-      <User className={iconSizes[size]} />
+      {showInitial ? (
+        <span>{initial}</span>
+      ) : (
+        <User className={iconSizes[size]} />
+      )}
     </div>
   );
 };

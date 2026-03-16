@@ -2,15 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { clientesApi, prestamosApi, conceptosCobroApi, Cliente, ConceptoCobro } from '@/lib/api';
+import { clientsApi, loansApi, chargeConceptsApi } from '@/lib/api';
+import type { Client, ChargeConcept } from '@creditflow/shared-types';
 import { getTodayString } from '@/lib/timezone';
 import {
   ArrowLeft,
-  User,
   DollarSign,
   Percent,
   Calendar,
-  CheckCircle,
   Search,
   Calculator,
   FileText,
@@ -24,10 +23,10 @@ export default function NuevoPrestamoPage() {
   const searchParams = useSearchParams();
   const clienteIdParam = searchParams.get('clienteId');
   
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [conceptos, setConceptos] = useState<ConceptoCobro[]>([]);
+  const [clientes, setClientes] = useState<Client[]>([]);
+  const [conceptos, setConceptos] = useState<ChargeConcept[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+  const [selectedCliente, setSelectedCliente] = useState<Client | null>(null);
   const [selectedConceptos, setSelectedConceptos] = useState<{conceptoId: number; porcentaje: number | string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,12 +52,12 @@ export default function NuevoPrestamoPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const conceptosRes = await conceptosCobroApi.getAll();
+        const conceptosRes = await chargeConceptsApi.getAll();
         const conceptosData = conceptosRes;
         setConceptos(Array.isArray(conceptosData) ? conceptosData : []);
 
         if (clienteIdParam) {
-          const clienteRes = await clientesApi.getOne(parseInt(clienteIdParam));
+          const clienteRes = await clientsApi.getOne(parseInt(clienteIdParam));
           const clienteData = clienteRes;
           if (clienteData) {
             setSelectedCliente(clienteData);
@@ -66,7 +65,7 @@ export default function NuevoPrestamoPage() {
           }
         }
         
-        const res = await clientesApi.getAll({ limit: 100 });
+        const res = await clientsApi.getAll({ limit: 100 });
         const data = res;
         setClientes(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -82,7 +81,7 @@ export default function NuevoPrestamoPage() {
       c.idNumber.includes(searchQuery)
   );
 
-  const handleSelectCliente = (cliente: Cliente) => {
+  const handleSelectCliente = (cliente: Client) => {
     setSelectedCliente(cliente);
     setStep('form');
   };
@@ -90,7 +89,6 @@ export default function NuevoPrestamoPage() {
   const calculateTotalDescuentos = () => {
     const monto = parseFloat(formData.montoPrestado) || 0;
     return selectedConceptos.reduce((total, selected) => {
-      const concepto = conceptos.find(c => c.id === selected.conceptoId);
       const porcentaje = typeof selected.porcentaje === 'string' 
         ? parseFloat(selected.porcentaje) || 0 
         : selected.porcentaje;
@@ -173,17 +171,17 @@ export default function NuevoPrestamoPage() {
 
     try {
       const monto = parseFloat(formData.montoPrestado);
-      await prestamosApi.create({
-        clienteId: selectedCliente.id,
-        montoPrestado: monto,
-        tasaInteres: parseFloat(formData.tasaInteres),
-        frecuenciaPago: formData.frecuenciaPago as 'DIARIO' | 'SEMANAL',
-        valorCuota: parseFloat(formData.valorCuota),
-        fechaInicio: formData.fechaInicio,
-        fechaFin: formData.fechaFin,
-        conceptosDescuento: selectedConceptos.map(c => ({
-          ...c,
-          porcentaje: typeof c.porcentaje === 'string' ? parseFloat(c.porcentaje) || 0 : c.porcentaje
+      await loansApi.create({
+        clientId: selectedCliente.id,
+        loanAmount: monto,
+        interestRate: parseFloat(formData.tasaInteres),
+        paymentFrequency: formData.frecuenciaPago as 'DAILY' | 'WEEKLY',
+        installmentValue: parseFloat(formData.valorCuota),
+        disbursementDate: formData.fechaInicio,
+        endDate: formData.fechaFin,
+        discountConcepts: selectedConceptos.map(c => ({
+          conceptId: c.conceptoId,
+          percentage: typeof c.porcentaje === 'string' ? parseFloat(c.porcentaje) || 0 : c.porcentaje
         })),
       });
 
@@ -406,7 +404,7 @@ export default function NuevoPrestamoPage() {
                 {conceptos.map((concepto) => {
                   const selectedConcepto = selectedConceptos.find(c => c.conceptoId === concepto.id);
                   const isSelected = !!selectedConcepto;
-                  const currentPorcentaje = selectedConcepto ? selectedConcepto.porcentaje : concepto.porcentaje;
+                  const currentPorcentaje = selectedConcepto ? selectedConcepto.porcentaje : concepto.percentage;
                   const percentageValue = typeof currentPorcentaje === 'string' 
                     ? parseFloat(currentPorcentaje) || 0 
                     : currentPorcentaje;
@@ -425,7 +423,7 @@ export default function NuevoPrestamoPage() {
                       <div className="flex items-center justify-between mb-3">
                         <div 
                           className="flex items-center gap-3 flex-1 cursor-pointer"
-                          onClick={() => toggleConcepto(concepto.id, concepto.porcentaje)}
+                          onClick={() => toggleConcepto(concepto.id, concepto.percentage)}
                         >
                           <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
                             isSelected ? 'bg-purple-600 border-purple-600' : 'border-gray-300'
@@ -461,9 +459,9 @@ export default function NuevoPrestamoPage() {
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
                           <span className="text-gray-500">
-                            Base: {concepto.porcentaje}%
+                            Base: {concepto.percentage}%
                           </span>
-                          {isSelected && percentageValue !== concepto.porcentaje && (
+                          {isSelected && percentageValue !== concepto.percentage && (
                             <span className="text-orange-600 font-medium">
                               → {currentPorcentaje}%
                             </span>

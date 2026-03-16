@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
-import { Prestamo } from '@creditflow/shared-types';
+import { Loan } from '@creditflow/shared-types';
 import { Calendar, DollarSign, CheckCircle, User } from 'lucide-react';
 
 export default function CobranzaPage() {
-  const [prestamos, setPrestamos] = useState<Prestamo[]>([]);
+  const [prestamos, setPrestamos] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalEsperado, setTotalEsperado] = useState(0);
   const [totalCobrado] = useState(0);
@@ -19,11 +19,11 @@ export default function CobranzaPage() {
 
   const loadCobranza = async () => {
     try {
-      const data = await api.prestamos.getAll();
-      const activos = (data as any[]).filter((p: any) => p.estado === 'ACTIVO');
+      const data = await api.loans.getAll();
+      const activos = (data as any[]).filter((p: any) => p.status === 'ACTIVE');
       setPrestamos(activos);
       
-      const esperado = activos.reduce((sum: number, p: any) => sum + (p.monto / p.numeroCuotas), 0);
+      const esperado = activos.reduce((sum: number, p: any) => sum + Number(p.installmentValue), 0);
       setTotalEsperado(esperado);
     } catch (error) {
       console.error('Error loading cobranza:', error);
@@ -92,7 +92,7 @@ export default function CobranzaPage() {
                 <div key={prestamo.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                   <div className="flex-1">
                     <p className="font-semibold text-gray-900">Préstamo #{String(prestamo.id).slice(0, 8)}</p>
-                    <p className="text-sm text-gray-600">Cuota: ${((prestamo as any).monto / (prestamo as any).numeroCuotas).toFixed(2)}</p>
+                    <p className="text-sm text-gray-600">Cuota: ${Number(prestamo.installmentValue).toFixed(2)}</p>
                   </div>
                   <Button size="sm" variant="primary">Cobrar</Button>
                 </div>

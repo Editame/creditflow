@@ -21,7 +21,7 @@ export default function NuevaRutaPage() {
     setIsLoading(true);
 
     try {
-      await api.rutas.create(formData);
+      await api.routes.create(formData);
       router.push('/dashboard/rutas');
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Error al crear la ruta');

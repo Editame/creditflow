@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
-import type { CreateGastoDto, FilterGastoDto } from '@creditflow/shared-types';
+import type { CreateExpenseDto, FilterExpenseDto } from '@creditflow/shared-types';
 
 @Injectable()
 export class GastosService {
   constructor(private prisma: PrismaService) {}
 
-  async create(tenantId: string, createGastoDto: CreateGastoDto) {
+  async create(tenantId: string, createExpenseDto: CreateExpenseDto) {
     const ruta = await this.prisma.route.findFirst({
-      where: { id: createGastoDto.routeId, tenantId },
+      where: { id: createExpenseDto.routeId, tenantId },
     });
 
     if (!ruta) {
@@ -19,21 +19,21 @@ export class GastosService {
     return this.prisma.expense.create({
       data: {
         tenantId,
-        routeId: createGastoDto.routeId,
-        amount: createGastoDto.amount,
-        description: createGastoDto.description,
-        category: createGastoDto.category,
-        date: createGastoDto.date ? new Date(createGastoDto.date) : new Date(),
+        routeId: createExpenseDto.routeId,
+        amount: createExpenseDto.amount,
+        description: createExpenseDto.description,
+        category: createExpenseDto.category,
+        date: createExpenseDto.date ? new Date(createExpenseDto.date) : new Date(),
       },
     });
   }
 
-  async findAll(tenantId: string, filters: FilterGastoDto) {
+  async findAll(tenantId: string, filters: FilterExpenseDto) {
     const { skip, take } = getPaginationParams(filters);
     
     const where: Record<string, unknown> = { tenantId };
-    if (filters.rutaId) where.routeId = filters.rutaId;
-    if (filters.categoria) where.category = filters.categoria;
+    if (filters.routeId) where.routeId = filters.routeId;
+    if (filters.category) where.category = filters.category;
 
     const [data, total] = await Promise.all([
       this.prisma.expense.findMany({

@@ -15,7 +15,7 @@ export default function ClientesPage() {
   useEffect(() => {
     const fetchClientes = async () => {
       try {
-        const res = await api.clientes.getAll();
+        const res = await api.clients.getAll();
         setClientes(res);
       } catch (error) {
         console.error('Error fetching clientes:', error);

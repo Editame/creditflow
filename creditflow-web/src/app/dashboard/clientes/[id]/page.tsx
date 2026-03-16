@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { clientesApi, prestamosApi } from '@/lib/api';
+import { clientsApi, loansApi } from '@/lib/api';
 import { 
   ArrowLeft, 
   User, 
@@ -64,8 +64,8 @@ export default function ClienteDetallePage() {
     const fetchData = async () => {
       try {
         const [clienteRes, prestamosRes] = await Promise.all([
-          clientesApi.getOne(clienteId),
-          prestamosApi.getAll({ limit: 50, clienteId }),
+          clientsApi.getOne(clienteId),
+          loansApi.getAll({ limit: 50, clientId: clienteId }),
         ]);
         
         const clienteData = clienteRes;
@@ -91,8 +91,8 @@ export default function ClienteDetallePage() {
 
   const handleUpdate = async () => {
     try {
-      await clientesApi.update(clienteId, formData);
-      const res = await clientesApi.getOne(clienteId);
+      await clientsApi.update(clienteId, formData);
+      const res = await clientsApi.getOne(clienteId);
       setCliente(res);
       setShowEditModal(false);
     } catch (error) {
@@ -103,7 +103,7 @@ export default function ClienteDetallePage() {
   const handleDelete = async () => {
     if (!confirm('¿Eliminar este cliente?')) return;
     try {
-      await clientesApi.delete(clienteId);
+      await clientsApi.delete(clienteId);
       router.push('/dashboard/clientes');
     } catch (error) {
       console.error('Error deleting cliente:', error);
@@ -116,14 +116,14 @@ export default function ClienteDetallePage() {
     try {
       setError('');
       if (cliente.bloqueado) {
-        await clientesApi.update(cliente.id, { bloqueado: false, motivoBloqueo: '' } as any);
+        await clientsApi.update(cliente.id, { bloqueado: false, motivoBloqueo: '' } as any);
         setCliente({ ...cliente, bloqueado: false, motivoBloqueo: undefined });
       } else {
         if (!motivoBloqueo.trim()) {
           setError('Debe indicar el motivo del bloqueo');
           return;
         }
-        await clientesApi.update(cliente.id, { bloqueado: true, motivoBloqueo } as any);
+        await clientsApi.update(cliente.id, { bloqueado: true, motivoBloqueo } as any);
         setCliente({ ...cliente, bloqueado: true, motivoBloqueo });
         setShowBlockModal(false);
         setMotivoBloqueo('');

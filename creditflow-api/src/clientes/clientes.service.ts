@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
-import type { CreateClienteDto, UpdateClienteDto, FilterClienteDto } from '@creditflow/shared-types';
+import type { CreateClientDto, UpdateClientDto, FilterClientDto } from '@creditflow/shared-types';
 
 @Injectable()
 export class ClientesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(tenantId: string, createClienteDto: CreateClienteDto) {
+  async create(tenantId: string, createClientDto: CreateClientDto) {
     const existing = await this.prisma.client.findUnique({
-      where: { tenantId_idNumber: { tenantId, idNumber: createClienteDto.idNumber } },
+      where: { tenantId_idNumber: { tenantId, idNumber: createClientDto.idNumber } },
     });
 
     if (existing) {
@@ -19,21 +19,21 @@ export class ClientesService {
     return this.prisma.client.create({
       data: {
         tenantId,
-        idNumber: createClienteDto.idNumber,
-        fullName: createClienteDto.fullName,
-        phone: createClienteDto.phone,
-        address: createClienteDto.address,
-        routeId: createClienteDto.routeId,
+        idNumber: createClientDto.idNumber,
+        fullName: createClientDto.fullName,
+        phone: createClientDto.phone,
+        address: createClientDto.address,
+        routeId: createClientDto.routeId,
       },
       include: { route: true },
     });
   }
 
-  async findAll(tenantId: string, filters: FilterClienteDto) {
+  async findAll(tenantId: string, filters: FilterClientDto) {
     const { skip, take } = getPaginationParams(filters);
     
     const where: Record<string, unknown> = { tenantId };
-    if (filters.rutaId) where.routeId = filters.rutaId;
+    if (filters.routeId) where.routeId = filters.routeId;
     if (filters.search) {
       where.OR = [
         { fullName: { contains: filters.search, mode: 'insensitive' } },
@@ -83,15 +83,15 @@ export class ClientesService {
     return cliente;
   }
 
-  async update(tenantId: string, id: number, updateClienteDto: UpdateClienteDto) {
+  async update(tenantId: string, id: number, updateClientDto: UpdateClientDto) {
     await this.findOne(tenantId, id);
     return this.prisma.client.update({
       where: { id },
       data: {
-        ...(updateClienteDto.fullName && { fullName: updateClienteDto.fullName }),
-        ...(updateClienteDto.phone && { phone: updateClienteDto.phone }),
-        ...(updateClienteDto.address && { address: updateClienteDto.address }),
-        ...(updateClienteDto.routeId && { routeId: updateClienteDto.routeId }),
+        ...(updateClientDto.fullName && { fullName: updateClientDto.fullName }),
+        ...(updateClientDto.phone && { phone: updateClientDto.phone }),
+        ...(updateClientDto.address && { address: updateClientDto.address }),
+        ...(updateClientDto.routeId && { routeId: updateClientDto.routeId }),
       },
       include: { route: true },
     });

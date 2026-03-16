@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { ArrowLeft, Plus, MapPin, Users, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, MapPin, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RutasPage() {
@@ -14,7 +14,7 @@ export default function RutasPage() {
   useEffect(() => {
     const fetchRutas = async () => {
       try {
-        const res = await api.rutas.getAll();
+        const res = await api.routes.getAll();
         const data = res;
         setRutas(Array.isArray(data) ? data : []);
       } catch (error) {
