@@ -226,6 +226,41 @@ export class PrestamosService {
     return { ...status, status: newStatus };
   }
 
+  async remove(tenantId: string, id: number) {
+    const loan = await this.prisma.loan.findFirst({
+      where: { id, tenantId },
+      include: { _count: { select: { payments: true } }, client: true },
+    });
+
+    if (!loan) throw new NotFoundException('Loan not found');
+
+    if (loan._count.payments > 0) {
+      throw new BadRequestException('No se puede eliminar un préstamo que ya tiene pagos registrados');
+    }
+
+    await this.prisma.loan.delete({ where: { id } });
+
+    // Revertir movimiento de caja si existe
+    try {
+      const movement = await this.prisma.cashMovement.findFirst({
+        where: { loanId: id },
+        include: { cashRegister: true },
+      });
+      if (movement) {
+        const newBalance = Number(movement.cashRegister.balance) + Number(movement.amount);
+        await this.prisma.$transaction([
+          this.prisma.cashMovement.delete({ where: { id: movement.id } }),
+          this.prisma.cashRegister.update({
+            where: { id: movement.cashRegisterId },
+            data: { balance: newBalance },
+          }),
+        ]);
+      }
+    } catch (e) { /* no cash movement */ }
+
+    return { deleted: true };
+  }
+
   private getDefaultPeriods(frequency: PaymentFrequency): number {
     switch (frequency) {
       case PaymentFrequency.DAILY: return 30;

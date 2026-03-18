@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Query, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PrestamosService } from './prestamos.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -36,5 +36,10 @@ export class PrestamosController {
     @CurrentUser() user: any
   ) {
     return this.prestamosService.refinance(tenantId, id, refinanceDto, user.id);
+  }
+
+  @Delete(':id')
+  remove(@CurrentTenant() tenantId: string, @Param('id', ParseIntPipe) id: number) {
+    return this.prestamosService.remove(tenantId, id);
   }
 }

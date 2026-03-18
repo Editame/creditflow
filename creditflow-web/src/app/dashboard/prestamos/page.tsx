@@ -424,7 +424,7 @@ export default function PrestamosPage() {
                                   {getStatusLabel(prestamo.status)}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  {prestamo.paymentFrequency === 'DAILY' ? 'Diario' : 'Semanal'}
+                                  {prestamo.paymentFrequency === 'DAILY' ? 'Diario' : prestamo.paymentFrequency === 'WEEKLY' ? 'Semanal' : prestamo.paymentFrequency === 'BIWEEKLY' ? 'Quincenal' : 'Mensual'}
                                 </span>
                               </div>
                             </div>
@@ -472,7 +472,7 @@ export default function PrestamosPage() {
                       </span>
                     </div>
                     <span className="text-xs text-gray-500">
-                      {prestamo.paymentFrequency === 'DAILY' ? 'Diario' : 'Semanal'}
+                      {prestamo.paymentFrequency === 'DAILY' ? 'Diario' : prestamo.paymentFrequency === 'WEEKLY' ? 'Semanal' : prestamo.paymentFrequency === 'BIWEEKLY' ? 'Quincenal' : 'Mensual'}
                     </span>
                   </div>
 

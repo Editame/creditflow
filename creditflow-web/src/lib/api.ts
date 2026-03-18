@@ -166,6 +166,9 @@ class ApiClient {
       const { data } = await this.client.post(`/prestamos/${id}/refinanciar`, dto);
       return data.data || data;
     },
+    delete: async (id: number): Promise<void> => {
+      await this.client.delete(`/prestamos/${id}`);
+    },
   };
 
   // Payments
