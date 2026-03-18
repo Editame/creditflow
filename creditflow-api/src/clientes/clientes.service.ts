@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
 import type { CreateClientDto, UpdateClientDto, FilterClientDto } from '@creditflow/shared-types';
@@ -8,6 +8,27 @@ export class ClientesService {
   constructor(private prisma: PrismaService) {}
 
   async create(tenantId: string, createClientDto: CreateClientDto) {
+    // Validar límites del tenant
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { maxClients: true, name: true }
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // Contar clientes actuales del tenant
+    const currentClientCount = await this.prisma.client.count({
+      where: { tenantId, active: true }
+    });
+
+    if (currentClientCount >= tenant.maxClients) {
+      throw new ForbiddenException(
+        `Maximum clients limit reached. Your plan allows ${tenant.maxClients} clients and you currently have ${currentClientCount}. Please upgrade your plan to create more clients.`
+      );
+    }
+
     const existing = await this.prisma.client.findUnique({
       where: { tenantId_idNumber: { tenantId, idNumber: createClientDto.idNumber } },
     });

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
 import type { CreateRutaDto, UpdateRutaDto, PaginationParams } from '@creditflow/shared-types';
@@ -8,6 +8,27 @@ export class RutasService {
   constructor(private prisma: PrismaService) {}
 
   async create(tenantId: string, createRutaDto: CreateRutaDto) {
+    // Validar límites del tenant
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { maxRoutes: true, name: true }
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // Contar rutas actuales del tenant
+    const currentRouteCount = await this.prisma.route.count({
+      where: { tenantId, active: true }
+    });
+
+    if (currentRouteCount >= tenant.maxRoutes) {
+      throw new ForbiddenException(
+        `Maximum routes limit reached. Your plan allows ${tenant.maxRoutes} routes and you currently have ${currentRouteCount}. Please upgrade your plan to create more routes.`
+      );
+    }
+
     return this.prisma.route.create({
       data: {
         tenantId,
