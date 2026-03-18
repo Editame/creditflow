@@ -7,7 +7,9 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 @Controller('admin')
 @UseGuards(JwtAuthGuard)
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+  ) {}
 
   @Get('stats')
   async getStats(@CurrentUser() user: any) {
@@ -63,6 +65,14 @@ export class AdminController {
       throw new Error('Acceso denegado');
     }
     return this.adminService.getTenantLimits(id);
+  }
+
+  @Post('init-features')
+  async initAllFeatures(@CurrentUser() user: any) {
+    if (user.role !== 'SUPER_ADMIN') {
+      throw new Error('Acceso denegado');
+    }
+    return this.adminService.initializeFeaturesForAllTenants();
   }
 
   @Post('licenses/generate')

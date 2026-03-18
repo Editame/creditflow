@@ -19,6 +19,7 @@ import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ReportsModule } from './reports/reports.module';
+import { FeaturesModule } from './features/features.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ReportsModule } from './reports/reports.module';
     PermissionsModule,
     DashboardModule,
     ReportsModule,
+    FeaturesModule,
     RutasModule,
     ClientesModule,
     PrestamosModule,

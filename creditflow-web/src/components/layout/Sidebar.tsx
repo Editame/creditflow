@@ -19,19 +19,25 @@ import {
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-const menuItems = [
+interface MenuItem {
+  icon: any;
+  label: string;
+  href: string;
+  feature?: string; // Feature requerida para mostrar este item
+}
+
+const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: MapPin, label: 'Rutas', href: '/dashboard/rutas' },
-  { icon: Users, label: 'Clientes', href: '/dashboard/clientes' },
-  { icon: CreditCard, label: 'Préstamos', href: '/dashboard/prestamos' },
-  { icon: DollarSign, label: 'Pagos', href: '/dashboard/pagos' },
-  { icon: Receipt, label: 'Gastos', href: '/dashboard/gastos' },
-  { icon: Calendar, label: 'Cobranza', href: '/dashboard/cobranza' },
-  { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes' },
+  { icon: MapPin, label: 'Rutas', href: '/dashboard/rutas', feature: 'ROUTES_BASIC' },
+  { icon: Users, label: 'Clientes', href: '/dashboard/clientes', feature: 'CLIENTS_BASIC' },
+  { icon: CreditCard, label: 'Préstamos', href: '/dashboard/prestamos', feature: 'LOANS_BASIC' },
+  { icon: DollarSign, label: 'Pagos', href: '/dashboard/pagos', feature: 'PAYMENTS_BASIC' },
+  { icon: Receipt, label: 'Gastos', href: '/dashboard/gastos', feature: 'EXPENSES' },
+  { icon: Calendar, label: 'Cobranza', href: '/dashboard/cobranza', feature: 'PAYMENTS_BASIC' },
+  { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes', feature: 'REPORTS_ADVANCED' },
 ];
 
-// Elementos del menú solo para administradores
-const adminMenuItems = [
+const adminMenuItems: MenuItem[] = [
   { icon: Building2, label: 'Gestión', href: '/dashboard/gestion' },
 ];
 
@@ -39,6 +45,17 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+
+  const enabledFeatures = user?.enabledFeatures || [];
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
+  const visibleMenuItems = menuItems.filter(item => {
+    if (!item.feature) return true;
+    if (isSuperAdmin) return true;
+    return enabledFeatures.includes(item.feature);
+  });
+
+  const planLabel = user?.tenant?.plan || 'Básico';
 
   return (
     <>
@@ -89,7 +106,7 @@ export function Sidebar() {
 
           {/* Menu */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {menuItems.map((item) => {
+            {visibleMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               
@@ -168,7 +185,7 @@ export function Sidebar() {
             <div className="text-xs text-slate-600 space-y-1">
               <div className="flex items-center justify-between">
                 <span>Plan Actual:</span>
-                <span className="font-medium text-slate-800">Básico</span>
+                <span className="font-medium text-slate-800">{planLabel}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>

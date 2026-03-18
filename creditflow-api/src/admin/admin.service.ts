@@ -1,12 +1,16 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { FeaturesService } from '../features/features.service';
 import { CreateTenantDto, UpdateTenantDto } from './dto/admin.dto';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private featuresService: FeaturesService,
+  ) {}
 
   async getSystemStats() {
     const [totalTenants, totalUsers, activeSubscriptions] = await Promise.all([
@@ -66,7 +70,7 @@ export class AdminService {
     }
 
     // Create tenant and admin user in transaction
-    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const result = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const tenant = await tx.tenant.create({
         data: mappedTenantData
       });
@@ -85,6 +89,11 @@ export class AdminService {
 
       return { tenant, adminUser: { ...user, password: undefined } };
     });
+
+    // Inicializar features después de la transacción
+    await this.featuresService.initializeTenantFeatures(result.tenant.id, mappedTenantData.plan);
+
+    return result;
   }
 
   async updateTenant(id: string, updateTenantDto: UpdateTenantDto) {
@@ -102,10 +111,17 @@ export class AdminService {
     if (updateTenantDto.maxRutas) mappedData.maxRoutes = updateTenantDto.maxRutas;
     if (updateTenantDto.activo !== undefined) mappedData.active = updateTenantDto.activo;
 
-    return this.prisma.tenant.update({
+    const updated = await this.prisma.tenant.update({
       where: { id },
       data: mappedData
     });
+
+    // Si cambió el plan, reinicializar features
+    if (updateTenantDto.plan && updateTenantDto.plan !== tenant.plan) {
+      await this.featuresService.initializeTenantFeatures(id, updateTenantDto.plan);
+    }
+
+    return updated;
   }
 
   async deleteTenant(id: string) {
@@ -177,10 +193,24 @@ export class AdminService {
 
   async generateLicense(licenseData: any) {
     // TODO: Implement license generation with RSA signing
-    // This would use the licensing package
     return {
       message: 'Funcionalidad de licencias pendiente de implementar',
       data: licenseData
     };
+  }
+
+  async initializeFeaturesForAllTenants() {
+    const tenants = await this.prisma.tenant.findMany();
+    let initialized = 0;
+
+    for (const tenant of tenants) {
+      const existing = await this.prisma.tenantFeature.count({ where: { tenantId: tenant.id } });
+      if (existing === 0) {
+        await this.featuresService.initializeTenantFeatures(tenant.id, tenant.plan);
+        initialized++;
+      }
+    }
+
+    return { message: `Features inicializadas para ${initialized} tenants`, total: tenants.length, initialized };
   }
 }

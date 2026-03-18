@@ -1,8 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { FeatureModule } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
-export const FEATURE_KEY = 'feature';
+export const FEATURE_KEY = 'required-feature';
 
 @Injectable()
 export class FeatureGuard implements CanActivate {
@@ -19,27 +20,29 @@ export class FeatureGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const tenantId = request.user?.tenantId;
-
-    if (!tenantId) {
-      throw new ForbiddenException('Tenant information missing');
+    const user = request.user;
+    
+    if (!user || !user.tenantId) {
+      throw new ForbiddenException('User not authenticated or no tenant');
     }
 
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenantId },
-      include: { features: true },
+    if (user.role === 'SUPER_ADMIN') {
+      return true;
+    }
+
+    const tenantFeature = await this.prisma.tenantFeature.findUnique({
+      where: {
+        tenantId_module: {
+          tenantId: user.tenantId,
+          module: requiredFeature as FeatureModule,
+        },
+      },
     });
 
-    if (!tenant) {
-      throw new ForbiddenException('Tenant not found');
-    }
-
-    const hasFeature = tenant.features.some(
-      f => f.module === requiredFeature && f.enabled
-    );
-
-    if (!hasFeature) {
-      throw new ForbiddenException(`Feature ${requiredFeature} not available in your plan`);
+    if (!tenantFeature || !tenantFeature.enabled) {
+      throw new ForbiddenException(
+        `Feature '${requiredFeature}' is not enabled for your plan. Please upgrade to access this functionality.`
+      );
     }
 
     return true;
