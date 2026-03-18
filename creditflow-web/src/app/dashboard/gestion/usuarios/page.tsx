@@ -400,24 +400,30 @@ export default function GestionUsuariosPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Rol</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
-                >
-                  <option value="COLLECTOR">Cobrador</option>
-                  <option value="SUPERVISOR">Supervisor</option>
-                  <option value="ACCOUNTANT">Contador</option>
-                  {currentUser?.role === 'SUPER_ADMIN' && (
-                    <>
+              {editingUser && ['ADMIN', 'SUPER_ADMIN'].includes(editingUser.role) ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rol</label>
+                  <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500">
+                    {getRoleLabel(editingUser.role)}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rol</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                  >
+                    <option value="COLLECTOR">Cobrador</option>
+                    <option value="SUPERVISOR">Supervisor</option>
+                    <option value="ACCOUNTANT">Contador</option>
+                    {currentUser?.role === 'SUPER_ADMIN' && (
                       <option value="ADMIN">Administrador</option>
-                      <option value="SUPER_ADMIN">Super Admin</option>
-                    </>
-                  )}
-                </select>
-              </div>
+                    )}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
