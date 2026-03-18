@@ -8,9 +8,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  // CORS
+  // CORS - desarrollo: permitir todo
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3100',
+    origin: true,
     credentials: true,
   });
 
