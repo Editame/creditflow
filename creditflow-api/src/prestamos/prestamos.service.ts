@@ -58,7 +58,7 @@ export class PrestamosService {
       const numInstallments = Math.ceil(totalWithInterest / installmentValue);
       endDate = this.calculateEndDate(collectionStartDate, numInstallments, createLoanDto.paymentFrequency as PaymentFrequency);
     } else {
-      const periods = createLoanDto.paymentFrequency === 'DAILY' ? 30 : 4;
+      const periods = this.getDefaultPeriods(createLoanDto.paymentFrequency as PaymentFrequency);
       installmentValue = Math.ceil(totalWithInterest / periods);
       endDate = this.calculateEndDate(collectionStartDate, periods, createLoanDto.paymentFrequency as PaymentFrequency);
     }
@@ -96,7 +96,7 @@ export class PrestamosService {
     const { skip, take } = getPaginationParams(filters);
     
     const where: Record<string, unknown> = { tenantId };
-    if (filters.clientId) where.clientId = filters.clientId;
+    if (filters.clientId) where.clientId = Number(filters.clientId);
     if (filters.status) where.status = filters.status;
 
     const [data, total] = await Promise.all([
@@ -213,15 +213,34 @@ export class PrestamosService {
     return { ...status, status: newStatus };
   }
 
+  private getDefaultPeriods(frequency: PaymentFrequency): number {
+    switch (frequency) {
+      case PaymentFrequency.DAILY: return 30;
+      case PaymentFrequency.WEEKLY: return 4;
+      case PaymentFrequency.BIWEEKLY: return 2;
+      case PaymentFrequency.MONTHLY: return 1;
+      default: return 30;
+    }
+  }
+
+  private getDaysPerPeriod(frequency: PaymentFrequency): number {
+    switch (frequency) {
+      case PaymentFrequency.DAILY: return 1;
+      case PaymentFrequency.WEEKLY: return 7;
+      case PaymentFrequency.BIWEEKLY: return 15;
+      case PaymentFrequency.MONTHLY: return 30;
+      default: return 1;
+    }
+  }
+
   private calculateEndDate(startDate: Date, numPayments: number, frequency: PaymentFrequency): Date {
-    const daysToAdd = frequency === PaymentFrequency.DAILY ? numPayments : numPayments * 7;
-    return addDaysToDate(startDate, daysToAdd);
+    return addDaysToDate(startDate, numPayments * this.getDaysPerPeriod(frequency));
   }
 
   private calculatePeriodsBetweenDates(startDate: Date, endDate: Date, frequency: PaymentFrequency): number {
     const diffTime = endDate.getTime() - startDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return frequency === PaymentFrequency.DAILY ? Math.max(1, diffDays) : Math.max(1, Math.ceil(diffDays / 7));
+    return Math.max(1, Math.ceil(diffDays / this.getDaysPerPeriod(frequency)));
   }
 
   async refinance(tenantId: string, loanId: number, refinanceDto: RefinanceLoanDto, userId: number) {
@@ -281,7 +300,7 @@ export class PrestamosService {
       const numInstallments = Math.ceil(totalWithInterest / installmentValue);
       endDate = this.calculateEndDate(collectionStartDate, numInstallments, refinanceDto.paymentFrequency as PaymentFrequency);
     } else {
-      const periods = refinanceDto.paymentFrequency === 'DAILY' ? 30 : 4;
+      const periods = this.getDefaultPeriods(refinanceDto.paymentFrequency as PaymentFrequency);
       installmentValue = Math.ceil(totalWithInterest / periods);
       endDate = this.calculateEndDate(collectionStartDate, periods, refinanceDto.paymentFrequency as PaymentFrequency);
     }
