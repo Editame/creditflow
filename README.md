@@ -9,7 +9,7 @@ Sistema de gestión de microcréditos por rutas con soporte **SaaS Multi-Tenant*
 | Capa | Tecnología |
 |------|-----------|
 | Backend | NestJS, Prisma, PostgreSQL, JWT |
-| Frontend | Next.js 15, Tailwind CSS, TypeScript |
+| Frontend | Next.js 15, Tailwind CSS, TypeScript, Responsive (mobile bottom nav + desktop sidebar) |
 | Packages | `@creditflow/shared-types`, `@creditflow/licensing`, `@creditflow/features` |
 
 ---

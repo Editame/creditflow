@@ -55,7 +55,7 @@ export default function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="container mx-auto px-4 py-6 lg:px-6 lg:py-8 max-w-7xl pb-24 lg:pb-8">
           {children}
         </div>
       </main>

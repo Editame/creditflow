@@ -56,6 +56,9 @@ next-env.d.ts
 # Spec (internal documentation for AI sessions)
 spec/
 
+# excluir por ahora ls licencias generadas
+/creditflow-api/generated-licenses/
+
 # TypeScript
 *.tsbuildinfo
 /start.bat
