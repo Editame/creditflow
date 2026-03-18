@@ -11,6 +11,10 @@ export class CreateAdminUserDto {
   @IsString()
   username!: string;
 
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
   @IsEmail()
   email!: string;
 
@@ -62,6 +66,10 @@ export class UpdateTenantDto {
   @IsOptional()
   @IsString()
   nombre?: string;
+
+  @IsOptional()
+  @IsString()
+  slug?: string;
 
   @IsOptional()
   @IsEnum(PlanType)

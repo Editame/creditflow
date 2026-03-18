@@ -82,6 +82,7 @@ export class AdminService {
           username: adminUser.username,
           email: adminUser.email,
           password: hashedPassword,
+          fullName: adminUser.fullName || null,
           role: 'ADMIN',
           tenantId: tenant.id
         }
@@ -105,6 +106,11 @@ export class AdminService {
     // Map Spanish field names to English schema names
     const mappedData: any = {};
     if (updateTenantDto.nombre) mappedData.name = updateTenantDto.nombre;
+    if (updateTenantDto.slug && updateTenantDto.slug !== tenant.slug) {
+      const existing = await this.prisma.tenant.findUnique({ where: { slug: updateTenantDto.slug } });
+      if (existing) throw new BadRequestException('El slug ya está en uso');
+      mappedData.slug = updateTenantDto.slug;
+    }
     if (updateTenantDto.plan) mappedData.plan = updateTenantDto.plan;
     if (updateTenantDto.maxUsuarios) mappedData.maxUsers = updateTenantDto.maxUsuarios;
     if (updateTenantDto.maxClientes) mappedData.maxClients = updateTenantDto.maxClientes;

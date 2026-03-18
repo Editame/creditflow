@@ -42,6 +42,7 @@ interface CreateTenantForm {
   contactoEmail: string;
   adminUser: {
     username: string;
+    fullName: string;
     email: string;
     password: string;
   };
@@ -80,6 +81,7 @@ export default function AdminDashboard() {
     contactoEmail: '',
     adminUser: {
       username: '',
+      fullName: '',
       email: '',
       password: ''
     }
@@ -127,7 +129,7 @@ export default function AdminDashboard() {
       maxClientes: tenant.maxClients,
       maxRutas: tenant.maxRoutes,
       contactoEmail: '',
-      adminUser: { username: '', email: '', password: '' }
+      adminUser: { username: '', fullName: '', email: '', password: '' }
     });
     setShowEditForm(true);
   };
@@ -139,6 +141,7 @@ export default function AdminDashboard() {
     try {
       await api.admin.updateTenant(editingTenant.id, {
         nombre: createForm.nombre,
+        slug: createForm.slug,
         plan: createForm.plan,
         maxUsuarios: createForm.maxUsuarios,
         maxClientes: createForm.maxClientes,
@@ -187,7 +190,7 @@ export default function AdminDashboard() {
         maxClientes: 1000,
         maxRutas: 10,
         contactoEmail: '',
-        adminUser: { username: '', email: '', password: '' }
+        adminUser: { username: '', fullName: '', email: '', password: '' }
       });
       await loadData();
       showSuccess('Empresa creada', '¡La empresa se creó exitosamente!');
@@ -574,6 +577,20 @@ export default function AdminDashboard() {
                     </div>
 
                     <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700">Nombre Completo</label>
+                      <input
+                        type="text"
+                        value={createForm.adminUser.fullName}
+                        onChange={(e) => setCreateForm(prev => ({
+                          ...prev,
+                          adminUser: { ...prev.adminUser, fullName: e.target.value }
+                        }))}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                        placeholder="Juan Pérez"
+                      />
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium mb-2 text-gray-700">Email</label>
                       <input
                         type="email"
@@ -660,13 +677,14 @@ export default function AdminDashboard() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700">Slug (Solo lectura)</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">Slug (URL)</label>
                     <input
                       type="text"
                       value={createForm.slug}
-                      className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
-                      disabled
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                     />
+                    <p className="text-[11px] text-amber-600 mt-1">⚠️ Cambiar el slug afecta identificadores internos</p>
                   </div>
                 </div>
 
