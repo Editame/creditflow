@@ -12,10 +12,12 @@ import {
   BarChart3,
   Building2,
   MoreHorizontal,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { ROLE_LABELS, UserRole } from '@creditflow/shared-types';
 
 interface MenuItem {
   icon: any;
@@ -31,6 +33,7 @@ const menuItems: MenuItem[] = [
   { icon: DollarSign, label: 'Pagos', href: '/dashboard/pagos', feature: 'PAYMENTS_BASIC' },
   { icon: Receipt, label: 'Gastos', href: '/dashboard/gastos', feature: 'EXPENSES' },
   { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes', feature: 'REPORTS_ADVANCED' },
+  { icon: TrendingUp, label: 'Inversiones', href: '/dashboard/inversiones', feature: 'INVESTMENTS' },
 ];
 
 const adminMenuItems: MenuItem[] = [
@@ -54,14 +57,20 @@ export function Sidebar() {
 
   const planLabel = user?.tenant?.plan || 'Básico';
 
-  // Mobile: primeros 3 items fijos + "Más"
-  const mobileMainItems = visibleMenuItems.slice(0, 3);
-  const mobileExtraItems = [
-    ...visibleMenuItems.slice(3),
+  const isActive = (href: string) => pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+
+  // Mobile: all items except Dashboard (it goes in center)
+  const allMobileItems = [
+    ...visibleMenuItems.filter(i => i.href !== '/dashboard'),
     ...(isAdmin ? adminMenuItems : []),
   ];
-
-  const isActive = (href: string) => pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+  const dashboardItem = visibleMenuItems.find(i => i.href === '/dashboard')!;
+  const needsMore = allMobileItems.length > 4;
+  // If ≤4 others: show 2 left + Dashboard + 2 right (pad with empty if needed)
+  // If >4: show 2 left + Dashboard + 1 right + "Más"
+  const leftItems = allMobileItems.slice(0, 2);
+  const rightItems = needsMore ? allMobileItems.slice(2, 3) : allMobileItems.slice(2, 4);
+  const mobileExtraItems = needsMore ? allMobileItems.slice(3) : [];
   const isExtraActive = mobileExtraItems.some(item => isActive(item.href));
 
   return (
@@ -81,7 +90,7 @@ export function Sidebar() {
           </div>
           <div className="mt-4 p-3 bg-slate-600 bg-opacity-30 rounded-lg">
             <p className="text-white text-sm font-medium">{user?.fullName || user?.username}</p>
-            <p className="text-slate-200 text-xs">{user?.role}</p>
+            <p className="text-slate-200 text-xs">{ROLE_LABELS[user?.role as UserRole] || user?.role}</p>
           </div>
         </div>
 
@@ -165,40 +174,69 @@ export function Sidebar() {
       {/* ========== MOBILE BOTTOM NAV ========== */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom">
         <div className="flex items-center justify-around px-2 py-1">
-          {mobileMainItems.map((item) => {
+          {/* Left items */}
+          {leftItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-col items-center gap-0.5 py-2 px-3 rounded-lg min-w-0 ${
-                  active ? 'text-slate-800' : 'text-slate-400'
-                }`}
+              <Link key={item.href} href={item.href}
+                className={`flex flex-col items-center gap-0.5 py-2 px-3 min-w-0 ${active ? 'text-slate-800' : 'text-slate-400'}`}
               >
                 <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-                <span className={`text-[10px] truncate ${active ? 'font-semibold' : 'font-medium'}`}>
-                  {item.label}
-                </span>
+                <span className={`text-[10px] truncate ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
               </Link>
             );
           })}
 
-          {/* Más button */}
-          <button
-            onClick={() => setShowMore(true)}
-            className={`flex flex-col items-center gap-0.5 py-2 px-3 rounded-lg ${
-              isExtraActive ? 'text-slate-800' : 'text-slate-400'
-            }`}
-          >
-            <MoreHorizontal size={22} strokeWidth={isExtraActive ? 2.5 : 1.8} />
-            <span className={`text-[10px] ${isExtraActive ? 'font-semibold' : 'font-medium'}`}>Más</span>
-          </button>
+          {/* Dashboard center - highlighted */}
+          {dashboardItem && (() => {
+            const Icon = dashboardItem.icon;
+            const active = isActive(dashboardItem.href);
+            return (
+              <Link href={dashboardItem.href}
+                className="flex flex-col items-center -mt-4"
+              >
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
+                  active
+                    ? 'bg-slate-800 text-white'
+                    : 'bg-gradient-to-br from-slate-600 to-slate-700 text-white'
+                }`}>
+                  <Icon size={24} strokeWidth={2} />
+                </div>
+                <span className={`text-[10px] mt-0.5 ${active ? 'font-semibold text-slate-800' : 'font-medium text-slate-500'}`}>Inicio</span>
+              </Link>
+            );
+          })()}
+
+          {/* Right items */}
+          {rightItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+            return (
+              <Link key={item.href} href={item.href}
+                className={`flex flex-col items-center gap-0.5 py-2 px-3 min-w-0 ${active ? 'text-slate-800' : 'text-slate-400'}`}
+              >
+                <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <span className={`text-[10px] truncate ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
+              </Link>
+            );
+          })}
+
+          {/* "Más" only if >5 total */}
+          {needsMore && (
+            <button
+              onClick={() => setShowMore(true)}
+              className={`flex flex-col items-center gap-0.5 py-2 px-3 ${isExtraActive ? 'text-slate-800' : 'text-slate-400'}`}
+            >
+              <MoreHorizontal size={22} strokeWidth={isExtraActive ? 2.5 : 1.8} />
+              <span className={`text-[10px] ${isExtraActive ? 'font-semibold' : 'font-medium'}`}>Más</span>
+            </button>
+          )}
         </div>
       </nav>
 
       {/* ========== MOBILE "MÁS" SHEET ========== */}
-      {showMore && (
+      {showMore && needsMore && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowMore(false)} />
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl safe-area-bottom animate-slide-up">
@@ -211,7 +249,7 @@ export function Sidebar() {
             <div className="flex items-center justify-between px-5 pb-3 border-b border-slate-100">
               <div>
                 <p className="font-semibold text-slate-900">{user?.fullName || user?.username}</p>
-                <p className="text-xs text-slate-500">{planLabel} · {user?.role}</p>
+                <p className="text-xs text-slate-500">{planLabel} · {ROLE_LABELS[user?.role as UserRole] || user?.role}</p>
               </div>
               <button
                 onClick={() => setShowMore(false)}

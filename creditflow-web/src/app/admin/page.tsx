@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Building2, Users, Crown, Key, AlertTriangle, Edit, Trash2, Eye, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { ROLE_LABELS, UserRole } from '@creditflow/shared-types';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 
@@ -266,7 +267,7 @@ export default function AdminDashboard() {
             Panel de Administración SaaS
           </h1>
           <p className="text-gray-600 mt-1">
-            Bienvenido, {user?.username} - {user?.role}
+            Bienvenido, {user?.fullName || user?.username} - {ROLE_LABELS[user?.role as UserRole] || user?.role}
           </p>
         </div>
         <div className="flex items-center space-x-2">

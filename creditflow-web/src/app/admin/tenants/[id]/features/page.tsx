@@ -24,7 +24,8 @@ import {
   Lock,
   CheckCircle,
   XCircle,
-  Save
+  Save,
+  TrendingUp
 } from 'lucide-react';
 
 interface Tenant {
@@ -80,6 +81,9 @@ const FEATURE_MODULES: FeatureModule[] = [
   { id: 'AUDIT_LOGS', name: 'Logs de Auditoría', description: 'Registro completo de actividades', icon: <Eye className="w-5 h-5" />, category: 'Enterprise', requiredPlan: 'ENTERPRISE' },
   { id: 'CUSTOM_REPORTS', name: 'Reportes Personalizados', description: 'Creación de reportes personalizados', icon: <BarChart3 className="w-5 h-5" />, category: 'Enterprise', requiredPlan: 'ENTERPRISE', isPremium: true },
   { id: 'ROLES_PERMISSIONS', name: 'Roles y Permisos', description: 'Sistema granular de permisos', icon: <Lock className="w-5 h-5" />, category: 'Enterprise', requiredPlan: 'ENTERPRISE' },
+
+  // Standalone (SUPER_ADMIN only)
+  { id: 'INVESTMENTS', name: 'Inversiones', description: 'Gestión de capital invertido y rendimientos', icon: <TrendingUp className="w-5 h-5" />, category: 'Standalone', isPremium: true },
 ];
 
 export default function TenantFeaturesPage({ params }: { params: Promise<{ id: string }> }) {
@@ -164,6 +168,7 @@ export default function TenantFeaturesPage({ params }: { params: Promise<{ id: s
       case 'Core': return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'Advanced': return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'Enterprise': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'Standalone': return 'bg-teal-100 text-teal-700 border-teal-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };

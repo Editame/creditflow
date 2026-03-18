@@ -21,6 +21,7 @@ import {
   Crown
 } from 'lucide-react';
 import type { User, CreateUserDto, UpdateUserDto, UserRole } from '@creditflow/shared-types';
+import { ROLE_LABELS } from '@creditflow/shared-types';
 
 export default function GestionUsuariosPage() {
   const router = useRouter();
@@ -175,22 +176,7 @@ export default function GestionUsuariosPage() {
     }
   };
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'SUPER_ADMIN':
-        return 'Super Admin';
-      case 'ADMIN':
-        return 'Administrador';
-      case 'SUPERVISOR':
-        return 'Supervisor';
-      case 'COLLECTOR':
-        return 'Cobrador';
-      case 'ACCOUNTANT':
-        return 'Contador';
-      default:
-        return role;
-    }
-  };
+  const getRoleLabel = (role: string) => ROLE_LABELS[role as UserRole] || role;
 
   if (!currentUser || !['SUPER_ADMIN', 'ADMIN'].includes(currentUser.role)) {
     return null;

@@ -1,10 +1,11 @@
 'use client';
 
-import { Users, CreditCard, MapPin, DollarSign, TrendingUp, Calendar, AlertCircle, Receipt, BarChart3, Wallet } from 'lucide-react';
+import { Users, CreditCard, MapPin, DollarSign, TrendingUp, Calendar, AlertCircle, Receipt, BarChart3, Wallet, Banknote } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { ROLE_LABELS, UserRole } from '@creditflow/shared-types';
 
 interface DashboardStats {
   totalClientes: number;
@@ -35,6 +36,8 @@ export default function DashboardPage() {
   });
   const [loading, setLoading] = useState(true);
 
+  const [investmentStats, setInvestmentStats] = useState<any>(null);
+
   useEffect(() => { loadStats(); }, []);
 
   const loadStats = async () => {
@@ -57,6 +60,7 @@ export default function DashboardPage() {
         tasaMorosidad: s.indicators?.delinquencyRate || 0,
         cobranzaPendiente: s.indicators?.activePortfolio || 0,
       });
+      if (s.investments) setInvestmentStats(s.investments);
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
     } finally {
@@ -87,6 +91,7 @@ export default function DashboardPage() {
     { icon: DollarSign, label: 'Registrar Pago', href: '/dashboard/pagos', feature: 'PAYMENTS_BASIC', bg: 'bg-emerald-50', color: 'text-emerald-600' },
     { icon: Receipt, label: 'Nuevo Gasto', href: '/dashboard/gastos', feature: 'EXPENSES', bg: 'bg-orange-50', color: 'text-orange-600' },
     { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes', feature: 'REPORTS_ADVANCED', bg: 'bg-indigo-50', color: 'text-indigo-600' },
+    { icon: TrendingUp, label: 'Inversiones', href: '/dashboard/inversiones', feature: 'INVESTMENTS', bg: 'bg-teal-50', color: 'text-teal-600' },
   ];
 
   const visibleActions = quickActions.filter(a => hasFeature(a.feature));
@@ -114,7 +119,7 @@ export default function DashboardPage() {
           </div>
           <div className="hidden md:block text-right">
             <p className="text-xs text-slate-500">Rol</p>
-            <p className="text-sm font-semibold text-slate-700">{user?.role}</p>
+            <p className="text-sm font-semibold text-slate-700">{ROLE_LABELS[user?.role as UserRole] || user?.role}</p>
           </div>
         </div>
       </div>
@@ -171,6 +176,32 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      {/* Investment Stats - only if feature enabled */}
+      {investmentStats && (
+        <div className="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-200 p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm lg:text-base font-semibold text-teal-900 flex items-center gap-2">
+              <Banknote className="w-4 h-4 lg:w-5 lg:h-5 text-teal-600" /> Inversiones
+            </h3>
+            <button onClick={() => router.push('/dashboard/inversiones')} className="text-xs text-teal-600 font-medium hover:underline">Ver todo →</button>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-[10px] lg:text-xs text-teal-600">Invertido</p>
+              <p className="text-sm lg:text-lg font-bold text-teal-900">${investmentStats.totalInvested.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-[10px] lg:text-xs text-teal-600">Cobrado (mes)</p>
+              <p className="text-sm lg:text-lg font-bold text-teal-900">${investmentStats.collectedThisMonth.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-[10px] lg:text-xs text-teal-600">Activas</p>
+              <p className="text-sm lg:text-lg font-bold text-teal-900">{investmentStats.activeCount}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       {visibleActions.length > 0 && (

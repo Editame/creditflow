@@ -19,6 +19,14 @@ export enum UserRole {
   ACCOUNTANT = 'ACCOUNTANT',
 }
 
+export const ROLE_LABELS: Record<UserRole, string> = {
+  [UserRole.SUPER_ADMIN]: 'Super Administrador',
+  [UserRole.ADMIN]: 'Administrador',
+  [UserRole.SUPERVISOR]: 'Supervisor',
+  [UserRole.COLLECTOR]: 'Cobrador',
+  [UserRole.ACCOUNTANT]: 'Contador',
+};
+
 export enum PaymentFrequency {
   DAILY = 'DAILY',
   WEEKLY = 'WEEKLY',
@@ -54,6 +62,14 @@ export enum FeatureModule {
   SSO = 'SSO',
   AUDIT_LOGS = 'AUDIT_LOGS',
   CUSTOM_REPORTS = 'CUSTOM_REPORTS',
+
+  // Standalone modules (SUPER_ADMIN only)
+  INVESTMENTS = 'INVESTMENTS',
+}
+
+export enum InvestmentStatus {
+  ACTIVE = 'ACTIVE',
+  RECOVERED = 'RECOVERED',
 }
 
 export enum SubscriptionStatus {

@@ -310,6 +310,41 @@ class ApiClient {
     },
   };
 
+  // Investments
+  investments = {
+    getAll: async (): Promise<any[]> => {
+      const { data } = await this.client.get('/inversiones');
+      return data.data?.data || data.data || [];
+    },
+    getOne: async (id: number): Promise<any> => {
+      const { data } = await this.client.get(`/inversiones/${id}`);
+      return data.data || data;
+    },
+    getStats: async (): Promise<any> => {
+      const { data } = await this.client.get('/inversiones/stats');
+      return data.data || data;
+    },
+    create: async (dto: any): Promise<any> => {
+      const { data } = await this.client.post('/inversiones', dto);
+      return data.data || data;
+    },
+    update: async (id: number, dto: any): Promise<any> => {
+      const { data } = await this.client.patch(`/inversiones/${id}`, dto);
+      return data.data || data;
+    },
+    delete: async (id: number): Promise<void> => {
+      await this.client.delete(`/inversiones/${id}`);
+    },
+    registerReturn: async (id: number, dto: any): Promise<any> => {
+      const { data } = await this.client.post(`/inversiones/${id}/rendimientos`, dto);
+      return data.data || data;
+    },
+    recover: async (id: number): Promise<any> => {
+      const { data } = await this.client.post(`/inversiones/${id}/recuperar`);
+      return data.data || data;
+    },
+  };
+
   // Health check
   async healthCheck(): Promise<{ status: string; message: string }> {
     const { data } = await this.client.get('/');

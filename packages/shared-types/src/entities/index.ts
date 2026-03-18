@@ -119,6 +119,37 @@ export interface ChargeConcept {
 }
 
 // ============================================
+// INVESTMENT
+// ============================================
+
+export interface Investment {
+  id: number;
+  tenantId: string;
+  name: string;
+  description: string | null;
+  amount: number;
+  interestRate: number;
+  frequency: PaymentFrequency;
+  expectedReturn: number;
+  status: 'ACTIVE' | 'RECOVERED';
+  startDate: Date;
+  recoveredAt: Date | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  returns?: InvestmentReturn[];
+}
+
+export interface InvestmentReturn {
+  id: number;
+  investmentId: number;
+  amount: number;
+  date: Date;
+  notes: string | null;
+  createdAt: Date;
+}
+
+// ============================================
 // LEGACY ALIASES (for backward compatibility)
 // ============================================
 

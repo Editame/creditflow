@@ -7,6 +7,7 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async getAdminSummary(tenantId: string) {
+    const now = new Date();
     const { start: todayStart, end: todayEnd } = getTodayRangeInTimezone();
     const { start: yesterdayStart, end: yesterdayEnd } = getYesterdayRangeInTimezone();
 
@@ -162,6 +163,33 @@ export class DashboardService {
 
     const cashBalance = cashRegisters.reduce((sum, r) => sum + r.balance.toNumber(), 0);
 
+    // Investment stats (only if tenant has INVESTMENTS feature)
+    const hasInvestments = await this.prisma.tenantFeature.findUnique({
+      where: { tenantId_module: { tenantId, module: 'INVESTMENTS' } },
+    });
+
+    let investmentStats = null;
+    if (hasInvestments?.enabled) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const [activeInv, returnsMonth] = await Promise.all([
+        this.prisma.investment.aggregate({
+          where: { tenantId, status: 'ACTIVE' },
+          _sum: { amount: true, expectedReturn: true },
+          _count: true,
+        }),
+        this.prisma.investmentReturn.aggregate({
+          where: { investment: { tenantId }, date: { gte: monthStart } },
+          _sum: { amount: true },
+        }),
+      ]);
+      investmentStats = {
+        activeCount: activeInv._count,
+        totalInvested: activeInv._sum.amount?.toNumber() || 0,
+        expectedMonthly: activeInv._sum.expectedReturn?.toNumber() || 0,
+        collectedThisMonth: returnsMonth._sum.amount?.toNumber() || 0,
+      };
+    }
+
     return {
       date: new Date().toISOString(),
       totals: {
@@ -197,6 +225,7 @@ export class DashboardService {
         bestRoutes: topRoutesWithName,
         routesWithMostOverdue: topOverdueRoutesWithName,
       },
+      investments: investmentStats,
     };
   }
 }

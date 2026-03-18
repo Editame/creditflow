@@ -273,3 +273,29 @@ export type FilterClienteDto = FilterClientDto;
 export type FilterPrestamoDto = FilterLoanDto;
 export type FilterPagoDto = FilterPaymentDto;
 export type FilterGastoDto = FilterExpenseDto;
+
+// ============================================
+// INVESTMENT DTOs
+// ============================================
+
+export interface CreateInvestmentDto {
+  name: string;
+  description?: string;
+  amount: number;
+  interestRate: number;
+  frequency: 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+  startDate: string;
+  notes?: string;
+}
+
+export interface UpdateInvestmentDto {
+  name?: string;
+  description?: string;
+  notes?: string;
+}
+
+export interface CreateInvestmentReturnDto {
+  amount: number;
+  date?: string;
+  notes?: string;
+}

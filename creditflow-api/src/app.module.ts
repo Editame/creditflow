@@ -21,6 +21,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { ReportsModule } from './reports/reports.module';
 import { FeaturesModule } from './features/features.module';
 import { CashModule } from './cash/cash.module';
+import { InversionesModule } from './inversiones/inversiones.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { CashModule } from './cash/cash.module';
     ReportsModule,
     FeaturesModule,
     CashModule,
+    InversionesModule,
     RutasModule,
     ClientesModule,
     PrestamosModule,
