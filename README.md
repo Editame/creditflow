@@ -1,344 +1,204 @@
-# 🚀 CreditFlow - Sistema de Microcréditos
+# CreditFlow
 
-Sistema completo de gestión de microcréditos por rutas con soporte para **SaaS Multi-Tenant** y **Self-Hosted con Licencias**.
-
----
-
-## 📋 Características
-
-### ✅ Funcionalidades Core
-- 🔐 Autenticación JWT
-- 👥 Gestión de Clientes
-- 💰 Gestión de Préstamos
-- 💵 Registro de Pagos
-- 📍 Gestión de Rutas
-- 💸 Control de Gastos
-- 📊 Reportes y Dashboard
-- 📅 Cobranza del Día
-
-### ✅ Multi-Tenant (SaaS)
-- 🏢 Aislamiento completo de datos por tenant
-- 📦 Planes: Básico, Profesional, Empresarial
-- 🔒 Límites configurables por plan
-- ✨ Control de features por plan
-
-### ✅ Licencias (Self-Hosted)
-- 🔑 Licencias firmadas con RSA
-- 📜 Validación de firma digital
-- ⏰ Control de expiración
-- 🎯 Módulos habilitables por licencia
+Sistema de gestión de microcréditos por rutas con soporte **SaaS Multi-Tenant** y **Self-Hosted con Licencias**.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Backend | NestJS, Prisma, PostgreSQL, JWT |
+| Frontend | Next.js 15, Tailwind CSS, TypeScript |
+| Packages | `@creditflow/shared-types`, `@creditflow/licensing`, `@creditflow/features` |
+
+---
+
+## Funcionalidades
+
+### Core (Plan Básico)
+- Autenticación JWT con roles (SUPER_ADMIN, ADMIN, SUPERVISOR, COLLECTOR, ACCOUNTANT)
+- Gestión de clientes con asignación a rutas
+- Préstamos con dos modalidades: por interés o por cuotas fijas
+- 4 frecuencias de pago: diario, semanal, quincenal, mensual
+- Registro de pagos con actualización automática de saldos y estados
+- Capital / Caja con movimientos automáticos (desembolsos, cobros, gastos)
+- Dashboard con métricas en tiempo real
+
+### Profesional
+- Todo lo del Básico
+- Gastos por ruta
+- Conceptos de cobro configurables (descuentos y costos)
+- Refinanciamiento de préstamos
+- Gestión de usuarios
+- Cajas por ruta (además de global)
+
+### Empresarial
+- Todo lo del Profesional
+- White Label, dominio personalizado
+- Webhooks, SSO, logs de auditoría
+- Reportes personalizados
+- Cajas ilimitadas
+
+### Multi-Tenant
+- Aislamiento completo de datos por tenant
+- Límites configurables por plan (rutas, clientes, usuarios)
+- Features habilitables por plan con auto-inicialización
+- Panel de administración SUPER_ADMIN
+
+### Licencias (Self-Hosted)
+- Licencias firmadas con RSA
+- Validación de firma digital y expiración
+- Módulos habilitables por licencia
+- API de generación de licencias
+
+---
+
+## Instalación
+
+### Requisitos
+- Node.js 18+
+- PostgreSQL (o cuenta Supabase)
 
 ### Backend
-- **NestJS** - Framework Node.js
-- **Prisma** - ORM
-- **PostgreSQL** - Base de datos
-- **JWT** - Autenticación
-- **TypeScript** - Tipado estricto
-
-### Frontend
-- **Next.js 15** - Framework React
-- **Tailwind CSS** - Estilos
-- **TypeScript** - Tipado estricto
-- **Axios** - Cliente HTTP
-
-### Packages
-- **@creditflow/shared-types** - Tipos compartidos
-- **@creditflow/licensing** - Sistema de licencias
-- **@creditflow/features** - Gestión de features
-
----
-
-## 📦 Instalación
-
-### 1. Clonar Repositorio
-```bash
-git clone https://github.com/Editame/creditflow.git
-cd creditflow
-```
-
-### 2. Instalar Dependencias
-
-**Backend:**
 ```bash
 cd creditflow-api
 npm install
+cp .env.example .env  # configurar DATABASE_URL y JWT_SECRET
+npx prisma db push
+npx prisma db seed
+npm run start:dev
 ```
 
-**Frontend:**
+### Frontend
 ```bash
 cd creditflow-web
 npm install
+cp .env.local.example .env.local  # configurar NEXT_PUBLIC_API_URL
+npm run dev
 ```
 
-**Packages:**
+### Packages
 ```bash
-cd packages/shared-types && npm install
+cd packages/shared-types && npm install && npm run build
 cd ../licensing && npm install
 cd ../features && npm install
 ```
 
-### 3. Configurar Variables de Entorno
+### Variables de Entorno
 
 **Backend (.env):**
-```env
+```
 DATABASE_URL="postgresql://user:password@localhost:5432/creditflow"
-JWT_SECRET="your-secret-key-here"
+JWT_SECRET="your-secret-key"
 PORT=3001
 ```
 
 **Frontend (.env.local):**
-```env
+```
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-### 4. Configurar Base de Datos
-```bash
-cd creditflow-api
-npx prisma migrate dev
-npx prisma db seed
-```
+---
+
+## API
+
+### Auth
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | /auth/login | Login |
+| GET | /auth/profile | Perfil con features |
+
+### Clientes
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /clientes | Listar (paginado, filtros) |
+| POST | /clientes | Crear |
+| GET | /clientes/:id | Detalle |
+| PATCH | /clientes/:id | Actualizar |
+| DELETE | /clientes/:id | Eliminar |
+
+### Préstamos
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /prestamos | Listar |
+| POST | /prestamos | Crear |
+| GET | /prestamos/:id | Detalle |
+| DELETE | /prestamos/:id | Eliminar (solo sin pagos) |
+| POST | /prestamos/:id/refinanciar | Refinanciar |
+
+### Pagos
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /pagos | Listar |
+| POST | /pagos | Registrar |
+
+### Gastos
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /gastos | Listar |
+| POST | /gastos | Crear |
+| DELETE | /gastos/:id | Eliminar |
+
+### Capital / Caja
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /cash/registers | Listar cajas |
+| POST | /cash/registers | Crear caja |
+| GET | /cash/registers/:id/summary | Resumen con stats del día |
+| GET | /cash/concepts | Listar conceptos |
+| POST | /cash/concepts | Crear concepto |
+| GET | /cash/movements | Listar movimientos |
+| POST | /cash/movements | Registrar movimiento manual |
+
+### Rutas
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /rutas | Listar |
+| POST | /rutas | Crear |
+| PATCH | /rutas/:id | Actualizar |
+| DELETE | /rutas/:id | Eliminar |
+
+### Dashboard
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /dashboard/admin-summary | Métricas generales |
+
+### Admin (SUPER_ADMIN)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /admin/tenants | Listar tenants |
+| POST | /admin/tenants | Crear tenant |
+| PATCH | /admin/tenants/:id | Actualizar |
+| GET | /admin/tenants/:id/features | Features del tenant |
+| PUT | /admin/tenants/:id/features | Actualizar features |
 
 ---
 
-## 🚀 Ejecución
-
-### Desarrollo
-
-**Backend:**
-```bash
-cd creditflow-api
-npm run start:dev
-```
-
-**Frontend:**
-```bash
-cd creditflow-web
-npm run dev
-```
-
-### Producción
-
-**Backend:**
-```bash
-cd creditflow-api
-npm run build
-npm run start:prod
-```
-
-**Frontend:**
-```bash
-cd creditflow-web
-npm run build
-npm start
-```
-
----
-
-## 🔑 Sistema de Licencias (Self-Hosted)
-
-### 1. Generar Llaves RSA
-```bash
-cd creditflow-api
-npm run generate:keys
-```
-
-Esto crea:
-- `keys/private.pem` - **MANTENER SECRETA**
-- `keys/public.pem` - Incluir en distribución
-
-### 2. Generar Licencia para Cliente
-```bash
-npm run generate:license
-```
-
-Editar `scripts/generate-license.ts` con datos del cliente:
-```typescript
-const licenseData = {
-  tenantName: 'Cliente XYZ',
-  contactEmail: 'cliente@example.com',
-  plan: 'PROFESIONAL',
-  modules: ['CLIENTES_BASIC', 'PRESTAMOS_BASIC', ...],
-  maxRutas: 10,
-  maxClientes: 1000,
-  maxUsuarios: 5,
-  expiresAt: new Date('2026-01-20'),
-  supportEndsAt: new Date('2026-01-20'),
-  version: '1.0.0',
-};
-```
-
-### 3. Distribuir Licencia
-Enviar `license-demo.json` al cliente. Cliente debe colocar en raíz del proyecto como `license.json`.
-
----
-
-## 🏢 Multi-Tenant (SaaS)
-
-### Crear Tenant
-```bash
-POST /tenants
-{
-  "nombre": "Empresa ABC",
-  "slug": "empresa-abc",
-  "plan": "PROFESIONAL",
-  "maxRutas": 10,
-  "maxClientes": 1000,
-  "maxUsuarios": 5
-}
-```
-
-### Verificar Límites
-```bash
-GET /tenants/:id/limits
-```
-
-Respuesta:
-```json
-{
-  "usuarios": { "current": 2, "max": 5, "available": 3 },
-  "clientes": { "current": 150, "max": 1000, "available": 850 },
-  "rutas": { "current": 3, "max": 10, "available": 7 }
-}
-```
-
----
-
-## 📚 Documentación API
-
-### Endpoints Principales
-
-**Auth:**
-- `POST /auth/login` - Iniciar sesión
-- `GET /auth/profile` - Obtener perfil
-
-**Tenants:**
-- `GET /tenants` - Listar tenants
-- `POST /tenants` - Crear tenant
-- `GET /tenants/:id/limits` - Verificar límites
-
-**Rutas:**
-- `GET /rutas` - Listar rutas
-- `POST /rutas` - Crear ruta
-- `PATCH /rutas/:id` - Actualizar ruta
-
-**Clientes:**
-- `GET /clientes` - Listar clientes
-- `POST /clientes` - Crear cliente
-- `PATCH /clientes/:id` - Actualizar cliente
-
-**Préstamos:**
-- `GET /prestamos` - Listar préstamos
-- `POST /prestamos` - Crear préstamo
-
-**Pagos:**
-- `GET /pagos` - Listar pagos
-- `POST /pagos` - Registrar pago
-
-**Gastos:**
-- `GET /gastos` - Listar gastos
-- `POST /gastos` - Crear gasto
-
----
-
-## 🎨 Planes y Features
-
-### Plan Básico
-- ✅ Clientes básicos
-- ✅ Préstamos básicos
-- ✅ Pagos básicos
-- ✅ Rutas básicas
-- ❌ Reportes avanzados
-- ❌ API REST
-- ❌ Exportar Excel
-
-### Plan Profesional
-- ✅ Todo lo del Básico
-- ✅ Gastos
-- ✅ Reportes avanzados
-- ✅ Gestión de usuarios
-- ✅ API REST
-- ✅ Exportar Excel
-- ❌ White Label
-
-### Plan Empresarial
-- ✅ Todo lo del Profesional
-- ✅ White Label
-- ✅ Dominio personalizado
-- ✅ Webhooks
-- ✅ SSO
-- ✅ Logs de auditoría
-- ✅ Reportes personalizados
-
----
-
-## 🔒 Seguridad
-
-- ✅ Autenticación JWT
-- ✅ Aislamiento de datos por tenant
-- ✅ Validación de entrada
-- ✅ Licencias firmadas digitalmente
-- ✅ HTTPS en producción
-- ✅ Variables de entorno
-
----
-
-## 📝 Scripts Disponibles
+## Scripts
 
 ### Backend
 ```bash
-npm run start:dev      # Desarrollo
-npm run build          # Build producción
-npm run start:prod     # Producción
-npm run generate:keys  # Generar llaves RSA
+npm run start:dev        # Desarrollo
+npm run build            # Build
+npm run start:prod       # Producción
+npm run generate:keys    # Generar llaves RSA
 npm run generate:license # Generar licencia
 ```
 
 ### Frontend
 ```bash
-npm run dev           # Desarrollo
-npm run build         # Build producción
-npm start             # Producción
-npm run lint          # Linter
+npm run dev    # Desarrollo
+npm run build  # Build
+npm start      # Producción
 ```
 
 ---
 
-## 🤝 Contribuir
+## Licencia
 
-1. Fork el proyecto
-2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
-3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
+MIT
 
----
+## Autor
 
-## 📄 Licencia
-
-Este proyecto está bajo licencia MIT.
-
----
-
-## 👨‍💻 Autor
-
-**Edilberto Tapias M.**
-- Email: betoben1442@gmail.com
-- GitHub: [@Editame](https://github.com/Editame)
-
----
-
-## 🙏 Agradecimientos
-
-- NestJS Team
-- Next.js Team
-- Prisma Team
-- Comunidad Open Source
-
----
-
-**Versión:** 1.0.0  
-**Última actualización:** Enero 2025
+**Edilberto Tapias M.** — [@Editame](https://github.com/Editame)

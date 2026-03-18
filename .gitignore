@@ -53,6 +53,9 @@ next-env.d.ts
 # Vercel
 .vercel
 
+# Spec (internal documentation for AI sessions)
+spec/
+
 # TypeScript
 *.tsbuildinfo
 /start.bat
