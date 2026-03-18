@@ -70,32 +70,32 @@ class ApiClient {
   // Auth
   auth = {
     login: async (credentials: LoginDto): Promise<AuthResponse> => {
-      const { data } = await this.client.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
-      return data.data;
+      const { data } = await this.client.post('/auth/login', credentials);
+      return data.data || data;
     },
     getProfile: async (): Promise<User> => {
-      const { data } = await this.client.get<ApiResponse<User>>('/auth/profile');
-      return data.data;
+      const { data } = await this.client.get('/auth/profile');
+      return data.data || data;
     },
   };
 
   // Users
   users = {
     getAll: async (params?: PaginationParams): Promise<User[]> => {
-      const { data } = await this.client.get<PaginatedResponse<User>>('/usuarios', { params });
-      return data.data;
+      const { data } = await this.client.get('/usuarios', { params });
+      return data.data?.data || data.data || [];
     },
     getOne: async (id: number): Promise<User> => {
-      const { data } = await this.client.get<User>(`/usuarios/${id}`);
-      return data;
+      const { data } = await this.client.get(`/usuarios/${id}`);
+      return data.data || data;
     },
     create: async (dto: CreateUserDto): Promise<User> => {
-      const { data } = await this.client.post<User>('/usuarios', dto);
-      return data;
+      const { data } = await this.client.post('/usuarios', dto);
+      return data.data || data;
     },
     update: async (id: number, dto: UpdateUserDto): Promise<User> => {
-      const { data } = await this.client.patch<User>(`/usuarios/${id}`, dto);
-      return data;
+      const { data } = await this.client.patch(`/usuarios/${id}`, dto);
+      return data.data || data;
     },
     delete: async (id: number): Promise<void> => {
       await this.client.delete(`/usuarios/${id}`);
@@ -105,20 +105,20 @@ class ApiClient {
   // Routes
   routes = {
     getAll: async (params?: PaginationParams): Promise<Route[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Route>>('/rutas', { params });
-      return data.data;
+      const { data } = await this.client.get('/rutas', { params });
+      return data.data?.data || data.data || [];
     },
     getOne: async (id: number): Promise<Route> => {
-      const { data } = await this.client.get<Route>(`/rutas/${id}`);
-      return data;
+      const { data } = await this.client.get(`/rutas/${id}`);
+      return data.data || data;
     },
     create: async (dto: CreateRouteDto): Promise<Route> => {
-      const { data } = await this.client.post<Route>('/rutas', dto);
-      return data;
+      const { data } = await this.client.post('/rutas', dto);
+      return data.data || data;
     },
     update: async (id: number, dto: UpdateRouteDto): Promise<Route> => {
-      const { data } = await this.client.patch<Route>(`/rutas/${id}`, dto);
-      return data;
+      const { data } = await this.client.patch(`/rutas/${id}`, dto);
+      return data.data || data;
     },
     delete: async (id: number): Promise<void> => {
       await this.client.delete(`/rutas/${id}`);
@@ -128,20 +128,20 @@ class ApiClient {
   // Clients
   clients = {
     getAll: async (filters?: FilterClientDto): Promise<Client[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Client>>('/clientes', { params: filters });
-      return data.data;
+      const { data } = await this.client.get('/clientes', { params: filters });
+      return data.data?.data || data.data || [];
     },
     getOne: async (id: number): Promise<Client> => {
-      const { data } = await this.client.get<Client>(`/clientes/${id}`);
-      return data;
+      const { data } = await this.client.get(`/clientes/${id}`);
+      return data.data || data;
     },
     create: async (dto: CreateClientDto): Promise<Client> => {
-      const { data } = await this.client.post<Client>('/clientes', dto);
-      return data;
+      const { data } = await this.client.post('/clientes', dto);
+      return data.data || data;
     },
     update: async (id: number, dto: UpdateClientDto): Promise<Client> => {
-      const { data } = await this.client.patch<Client>(`/clientes/${id}`, dto);
-      return data;
+      const { data } = await this.client.patch(`/clientes/${id}`, dto);
+      return data.data || data;
     },
     delete: async (id: number): Promise<void> => {
       await this.client.delete(`/clientes/${id}`);
@@ -151,48 +151,48 @@ class ApiClient {
   // Loans
   loans = {
     getAll: async (filters?: FilterLoanDto): Promise<Loan[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Loan>>('/prestamos', { params: filters });
-      return data.data;
+      const { data } = await this.client.get('/prestamos', { params: filters });
+      return data.data?.data || data.data || [];
     },
     getOne: async (id: number): Promise<Loan> => {
-      const { data } = await this.client.get<Loan>(`/prestamos/${id}`);
-      return data;
+      const { data } = await this.client.get(`/prestamos/${id}`);
+      return data.data || data;
     },
     create: async (dto: CreateLoanDto): Promise<Loan> => {
-      const { data } = await this.client.post<Loan>('/prestamos', dto);
-      return data;
+      const { data } = await this.client.post('/prestamos', dto);
+      return data.data || data;
     },
     refinance: async (id: number, dto: RefinanceLoanDto): Promise<any> => {
       const { data } = await this.client.post(`/prestamos/${id}/refinanciar`, dto);
-      return data;
+      return data.data || data;
     },
   };
 
   // Payments
   payments = {
     getAll: async (filters?: FilterPaymentDto): Promise<Payment[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Payment>>('/pagos', { params: filters });
-      return data.data;
+      const { data } = await this.client.get('/pagos', { params: filters });
+      return data.data?.data || data.data || [];
     },
     create: async (dto: CreatePaymentDto): Promise<Payment> => {
-      const { data } = await this.client.post<Payment>('/pagos', dto);
-      return data;
+      const { data } = await this.client.post('/pagos', dto);
+      return data.data || data;
     },
   };
 
   // Expenses
   expenses = {
     getAll: async (filters?: FilterExpenseDto): Promise<Expense[]> => {
-      const { data } = await this.client.get<PaginatedResponse<Expense>>('/gastos', { params: filters });
-      return data.data;
+      const { data } = await this.client.get('/gastos', { params: filters });
+      return data.data?.data || data.data || [];
     },
     create: async (dto: CreateExpenseDto): Promise<Expense> => {
-      const { data } = await this.client.post<Expense>('/gastos', dto);
-      return data;
+      const { data } = await this.client.post('/gastos', dto);
+      return data.data || data;
     },
     update: async (id: number, dto: UpdateExpenseDto): Promise<Expense> => {
-      const { data } = await this.client.patch<Expense>(`/gastos/${id}`, dto);
-      return data;
+      const { data } = await this.client.patch(`/gastos/${id}`, dto);
+      return data.data || data;
     },
     delete: async (id: number): Promise<void> => {
       await this.client.delete(`/gastos/${id}`);
@@ -247,8 +247,24 @@ class ApiClient {
       const { data } = await this.client.get(`/admin/tenants/${id}/limits`);
       return data.data || data;
     },
+    getTenantFeatures: async (id: string): Promise<any[]> => {
+      const { data } = await this.client.get(`/admin/tenants/${id}/features`);
+      return data.data || data;
+    },
+    updateTenantFeatures: async (id: string, features: Record<string, boolean>): Promise<any> => {
+      const { data } = await this.client.put(`/admin/tenants/${id}/features`, { features });
+      return data.data || data;
+    },
     generateLicense: async (licenseData: any): Promise<any> => {
       const { data } = await this.client.post('/admin/licenses/generate', licenseData);
+      return data.data || data;
+    },
+  };
+
+  // Dashboard
+  dashboard = {
+    getSummary: async (): Promise<any> => {
+      const { data } = await this.client.get('/dashboard/admin-summary');
       return data.data || data;
     },
   };
