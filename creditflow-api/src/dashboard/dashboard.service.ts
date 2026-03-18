@@ -151,8 +151,17 @@ export class DashboardService {
     const collectedYesterdayAmount = collectedYesterday._sum.amountPaid?.toNumber() || 0;
     const dailyVariation = collectedYesterdayAmount > 0 ? ((totalCollected - collectedYesterdayAmount) / collectedYesterdayAmount) * 100 : 0;
 
+    const [totalClients, totalRoutes] = await Promise.all([
+      this.prisma.client.count({ where: { tenantId, active: true } }),
+      this.prisma.route.count({ where: { tenantId, active: true } }),
+    ]);
+
     return {
       date: new Date().toISOString(),
+      totals: {
+        clients: totalClients,
+        routes: totalRoutes,
+      },
       metrics: {
         collectedToday: totalCollected,
         expectedToday,

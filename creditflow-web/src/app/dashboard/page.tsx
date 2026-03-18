@@ -1,30 +1,47 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Users, CreditCard, MapPin, DollarSign, TrendingUp, Calendar, AlertCircle } from 'lucide-react';
+import { Users, CreditCard, MapPin, DollarSign, TrendingUp, Calendar, AlertCircle, Receipt, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 interface DashboardStats {
   totalClientes: number;
-  totalPrestamos: number;
   totalRutas: number;
-  recaudadoHoy: number;
   prestamosActivos: number;
-  clientesActivos: number;
+  prestamosMora: number;
+  recaudadoHoy: number;
+  esperadoHoy: number;
+  prestadoHoy: number;
+  gastosHoy: number;
+  liquidadoDia: number;
+  carteraActiva: number;
+  carteraMora: number;
+  tasaRecuperacion: number;
+  tasaMorosidad: number;
   cobranzaPendiente: number;
 }
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalClientes: 0,
-    totalPrestamos: 0,
     totalRutas: 0,
-    recaudadoHoy: 0,
     prestamosActivos: 0,
-    clientesActivos: 0,
-    cobranzaPendiente: 0
+    prestamosMora: 0,
+    recaudadoHoy: 0,
+    esperadoHoy: 0,
+    prestadoHoy: 0,
+    gastosHoy: 0,
+    liquidadoDia: 0,
+    carteraActiva: 0,
+    carteraMora: 0,
+    tasaRecuperacion: 0,
+    tasaMorosidad: 0,
+    cobranzaPendiente: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -34,16 +51,22 @@ export default function DashboardPage() {
 
   const loadStats = async () => {
     try {
-      // TODO: Implementar llamada a API para estadísticas
-      // Datos mock por ahora
+      const summary = await api.dashboard.getSummary();
       setStats({
-        totalClientes: 0,
-        totalPrestamos: 0,
-        totalRutas: 0,
-        recaudadoHoy: 0,
-        prestamosActivos: 0,
-        clientesActivos: 0,
-        cobranzaPendiente: 0
+        totalClientes: summary.totals?.clients || 0,
+        totalRutas: summary.totals?.routes || 0,
+        prestamosActivos: summary.indicators?.activeLoans || 0,
+        prestamosMora: summary.indicators?.overdueLoans || 0,
+        recaudadoHoy: summary.metrics?.collectedToday || 0,
+        esperadoHoy: summary.metrics?.expectedToday || 0,
+        prestadoHoy: summary.metrics?.lentToday || 0,
+        gastosHoy: summary.metrics?.expensesToday || 0,
+        liquidadoDia: summary.metrics?.liquidatedDay || 0,
+        carteraActiva: summary.indicators?.activePortfolio || 0,
+        carteraMora: summary.indicators?.overduePortfolio || 0,
+        tasaRecuperacion: summary.indicators?.recoveryRate || 0,
+        tasaMorosidad: summary.indicators?.delinquencyRate || 0,
+        cobranzaPendiente: summary.indicators?.activePortfolio || 0,
       });
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
@@ -90,19 +113,48 @@ export default function DashboardPage() {
   const secondaryStats = [
     {
       icon: TrendingUp,
-      label: 'Cobranza Pendiente',
-      value: `$${stats.cobranzaPendiente.toLocaleString()}`,
+      label: 'Cartera Activa',
+      value: `$${stats.carteraActiva.toLocaleString()}`,
       color: 'text-orange-600',
       bg: 'bg-orange-50'
     },
     {
+      icon: AlertCircle,
+      label: 'En Mora',
+      value: `${stats.prestamosMora} préstamos ($${stats.carteraMora.toLocaleString()})`,
+      color: 'text-red-600',
+      bg: 'bg-red-50'
+    },
+    {
       icon: Calendar,
-      label: 'Clientes Activos',
-      value: stats.clientesActivos.toString(),
+      label: 'Tasa Recuperación Hoy',
+      value: `${stats.tasaRecuperacion}%`,
       color: 'text-indigo-600',
       bg: 'bg-indigo-50'
-    }
+    },
+    {
+      icon: DollarSign,
+      label: 'Liquidado del Día',
+      value: `$${stats.liquidadoDia.toLocaleString()}`,
+      color: stats.liquidadoDia >= 0 ? 'text-green-600' : 'text-red-600',
+      bg: stats.liquidadoDia >= 0 ? 'bg-green-50' : 'bg-red-50'
+    },
   ];
+
+  const enabledFeatures = user?.enabledFeatures || [];
+  const hasFeature = (f: string) => enabledFeatures.includes(f);
+
+  const quickActions = [
+    { icon: Users, label: 'Nuevo Cliente', href: '/dashboard/clientes/nuevo', feature: 'CLIENTS_BASIC', from: 'from-blue-50', to: 'to-blue-100', border: 'border-blue-200', color: 'text-blue-600', textColor: 'text-blue-800' },
+    { icon: CreditCard, label: 'Nuevo Préstamo', href: '/dashboard/prestamos/nuevo', feature: 'LOANS_BASIC', from: 'from-green-50', to: 'to-green-100', border: 'border-green-200', color: 'text-green-600', textColor: 'text-green-800' },
+    { icon: MapPin, label: 'Nueva Ruta', href: '/dashboard/rutas/nueva', feature: 'ROUTES_BASIC', from: 'from-purple-50', to: 'to-purple-100', border: 'border-purple-200', color: 'text-purple-600', textColor: 'text-purple-800' },
+    { icon: DollarSign, label: 'Registrar Pago', href: '/dashboard/pagos', feature: 'PAYMENTS_BASIC', from: 'from-emerald-50', to: 'to-emerald-100', border: 'border-emerald-200', color: 'text-emerald-600', textColor: 'text-emerald-800' },
+    { icon: Receipt, label: 'Nuevo Gasto', href: '/dashboard/gastos', feature: 'EXPENSES', from: 'from-orange-50', to: 'to-orange-100', border: 'border-orange-200', color: 'text-orange-600', textColor: 'text-orange-800' },
+    { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes', feature: 'REPORTS_ADVANCED', from: 'from-indigo-50', to: 'to-indigo-100', border: 'border-indigo-200', color: 'text-indigo-600', textColor: 'text-indigo-800' },
+    { icon: Calendar, label: 'Cobranza del Día', href: '/dashboard/cobranza', feature: 'PAYMENTS_BASIC', from: 'from-teal-50', to: 'to-teal-100', border: 'border-teal-200', color: 'text-teal-600', textColor: 'text-teal-800' },
+  ];
+
+  const visibleActions = quickActions.filter(a => hasFeature(a.feature));
 
   if (loading) {
     return (
@@ -184,34 +236,29 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-primary-600" />
-            <span>Acciones Rápidas</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all group">
-              <Users className="text-blue-600 w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-blue-800">Nuevo Cliente</span>
-            </button>
-            <button className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl hover:from-green-100 hover:to-green-200 transition-all group">
-              <CreditCard className="text-green-600 w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-green-800">Nuevo Préstamo</span>
-            </button>
-            <button className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all group">
-              <MapPin className="text-purple-600 w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-purple-800">Nueva Ruta</span>
-            </button>
-            <button className="flex items-center space-x-3 p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-emerald-200 transition-all group">
-              <DollarSign className="text-emerald-600 w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-emerald-800">Registrar Pago</span>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+      {visibleActions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp className="w-5 h-5 text-primary-600" />
+              <span>Acciones Rápidas</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {visibleActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <button key={action.label} onClick={() => router.push(action.href)} className={`flex items-center space-x-3 p-4 bg-gradient-to-r ${action.from} ${action.to} border ${action.border} rounded-xl hover:opacity-90 transition-all group`}>
+                    <Icon className={`${action.color} w-5 h-5 group-hover:scale-110 transition-transform`} />
+                    <span className={`font-medium ${action.textColor}`}>{action.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* System Status */}
       <Card>
