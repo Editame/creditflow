@@ -48,6 +48,7 @@ export class UsuariosService {
       data: {
         tenantId,
         username: createUserDto.username,
+        fullName: createUserDto.fullName,
         email: createUserDto.email,
         password: hashedPassword,
         role: createUserDto.role as any,
@@ -55,6 +56,7 @@ export class UsuariosService {
       select: {
         id: true,
         username: true,
+        fullName: true,
         email: true,
         role: true,
         active: true,
@@ -69,6 +71,7 @@ export class UsuariosService {
       select: {
         id: true,
         username: true,
+        fullName: true,
         email: true,
         role: true,
         active: true,
@@ -85,6 +88,7 @@ export class UsuariosService {
       select: {
         id: true,
         username: true,
+        fullName: true,
         email: true,
         role: true,
         active: true,
@@ -115,6 +119,7 @@ export class UsuariosService {
       select: {
         id: true,
         username: true,
+        fullName: true,
         email: true,
         role: true,
         active: true,

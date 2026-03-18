@@ -17,6 +17,7 @@ export default function GastosPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { toasts, removeToast, success, error } = useToast();
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     descripcion: '',
     monto: '',
@@ -72,14 +73,15 @@ export default function GastosPage() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Eliminar este gasto?')) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget;
+    setDeleteTarget(null);
     try {
       await api.expenses.delete(id);
       loadGastos();
       success('Gasto eliminado');
     } catch (err) {
-      console.error('Error deleting gasto:', err);
       error('Error al eliminar gasto');
     }
   };
@@ -186,7 +188,7 @@ export default function GastosPage() {
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <Button size="sm" variant="danger" onClick={() => handleDelete(gasto.id)}>
+                    <Button size="sm" variant="danger" onClick={() => setDeleteTarget(gasto.id)}>
                       <Trash2 className="w-4 h-4 mr-1" />
                       Eliminar
                     </Button>
@@ -195,6 +197,20 @@ export default function GastosPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar Gasto</h3>
+            <p className="text-sm text-gray-600 mb-6">¿Estás seguro de eliminar este gasto?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl">Cancelar</button>
+              <button onClick={handleDelete} className="flex-1 py-3 bg-red-600 text-white font-medium rounded-xl">Eliminar</button>
+            </div>
+          </div>
         </div>
       )}
 

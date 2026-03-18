@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Users, CreditCard, MapPin, DollarSign, TrendingUp, Calendar, AlertCircle, Receipt, BarChart3 } from 'lucide-react';
+import { Users, CreditCard, MapPin, DollarSign, TrendingUp, Calendar, AlertCircle, Receipt, BarChart3, Wallet } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
@@ -17,6 +17,7 @@ interface DashboardStats {
   prestadoHoy: number;
   gastosHoy: number;
   liquidadoDia: number;
+  saldoCaja: number;
   carteraActiva: number;
   carteraMora: number;
   tasaRecuperacion: number;
@@ -37,6 +38,7 @@ export default function DashboardPage() {
     prestadoHoy: 0,
     gastosHoy: 0,
     liquidadoDia: 0,
+    saldoCaja: 0,
     carteraActiva: 0,
     carteraMora: 0,
     tasaRecuperacion: 0,
@@ -62,6 +64,7 @@ export default function DashboardPage() {
         prestadoHoy: summary.metrics?.lentToday || 0,
         gastosHoy: summary.metrics?.expensesToday || 0,
         liquidadoDia: summary.metrics?.liquidatedDay || 0,
+        saldoCaja: summary.totals?.cashBalance || 0,
         carteraActiva: summary.indicators?.activePortfolio || 0,
         carteraMora: summary.indicators?.overduePortfolio || 0,
         tasaRecuperacion: summary.indicators?.recoveryRate || 0,
@@ -172,7 +175,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
-              Bienvenido, {user?.username}
+              Bienvenido, {user?.fullName || user?.username}
             </h1>
             <p className="text-slate-600 mt-2 flex items-center space-x-2">
               <span>Rol: {user?.role}</span>
@@ -210,6 +213,21 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      {/* Saldo en Caja - Destacado */}
+      <Card className="border-l-4 border-amber-300 hover:shadow-lg transition-all duration-200">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600 mb-1">Saldo en Caja</p>
+              <p className="text-3xl font-bold text-slate-900">${stats.saldoCaja.toLocaleString()}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-amber-50">
+              <Wallet className="text-amber-600 w-6 h-6" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -258,53 +276,7 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {/* System Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <AlertCircle className="w-5 h-5 text-slate-600" />
-            <span>Estado del Sistema</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <h4 className="font-medium text-slate-700">Conexiones</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-slate-600">Frontend conectado</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-slate-600">API funcionando</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-slate-600">Base de datos activa</span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-medium text-slate-700">Información de Usuario</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Usuario:</span>
-                  <span className="text-slate-700 font-medium">{user?.username}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Rol:</span>
-                  <span className="text-slate-700 font-medium">{user?.role}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Tenant ID:</span>
-                  <span className="text-slate-700 font-medium">{user?.tenantId || 'N/A'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 import {
   ArrowLeft,
   MapPin,
@@ -23,6 +24,8 @@ export default function RutaDetallePage() {
   const [clientes, setClientes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { success: showSuccess, error: showError } = useToast();
   const [formData, setFormData] = useState({ name: '', description: '', active: true });
 
   useEffect(() => {
@@ -65,12 +68,13 @@ export default function RutaDetallePage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('¿Eliminar esta ruta?')) return;
+    setShowDeleteModal(false);
     try {
       await api.routes.delete(rutaId);
+      showSuccess('Ruta eliminada', 'La ruta fue eliminada correctamente');
       router.push('/dashboard/rutas');
-    } catch (error) {
-      console.error('Error deleting ruta:', error);
+    } catch (error: any) {
+      showError('Error', error.response?.data?.message || 'No se pudo eliminar la ruta');
     }
   };
 
@@ -220,13 +224,29 @@ export default function RutaDetallePage() {
 
         {/* Delete Button */}
         <button
-          onClick={handleDelete}
+          onClick={() => setShowDeleteModal(true)}
           className="w-full py-4 bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 touch-manipulation"
         >
           <Trash2 className="w-5 h-5" />
           <span>Eliminar Ruta</span>
         </button>
       </div>
+
+      {/* Delete Confirm Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar Ruta</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              ¿Estás seguro de eliminar <span className="font-semibold">{ruta.name}</span>?
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl">Cancelar</button>
+              <button onClick={handleDelete} className="flex-1 py-3 bg-red-600 text-white font-medium rounded-xl">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {showEditModal && (

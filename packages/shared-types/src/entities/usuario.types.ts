@@ -4,6 +4,7 @@ export interface User {
   id: number;
   tenantId: string | null;
   username: string;
+  fullName: string | null;
   email: string | null;
   role: UserRole;
   active: boolean;
@@ -25,6 +26,7 @@ export interface UserSafe extends Omit<User, 'password'> {
 
 export interface CreateUserDto {
   username: string;
+  fullName?: string;
   email?: string;
   password: string;
   role: UserRole;
@@ -32,6 +34,7 @@ export interface CreateUserDto {
 
 export interface UpdateUserDto {
   username?: string;
+  fullName?: string;
   email?: string;
   password?: string;
   role?: UserRole;

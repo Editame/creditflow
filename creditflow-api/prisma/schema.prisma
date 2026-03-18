@@ -188,6 +188,7 @@ model User {
   tenant    Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   
   username  String
+  fullName  String?
   email     String?
   password  String
   role      UserRole  @default(COLLECTOR)

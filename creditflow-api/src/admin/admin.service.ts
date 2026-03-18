@@ -191,14 +191,6 @@ export class AdminService {
     };
   }
 
-  async generateLicense(licenseData: any) {
-    // TODO: Implement license generation with RSA signing
-    return {
-      message: 'Funcionalidad de licencias pendiente de implementar',
-      data: licenseData
-    };
-  }
-
   async initializeFeaturesForAllTenants() {
     const tenants = await this.prisma.tenant.findMany();
     let initialized = 0;

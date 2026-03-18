@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards, Res, ForbiddenException } from '@nestjs/common';
 import { Response } from 'express';
 import { LicenseGeneratorService } from './license-generator.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,6 +15,18 @@ interface GenerateLicenseDto {
 export class LicenseGeneratorController {
   constructor(private licenseGenerator: LicenseGeneratorService) {}
 
+  private assertSuperAdmin(user: any) {
+    if (user.role !== 'SUPER_ADMIN') throw new ForbiddenException('Acceso denegado');
+  }
+
+  private buildOptions(dto: GenerateLicenseDto) {
+    return {
+      contactEmail: dto.contactEmail,
+      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
+      supportEndsAt: dto.supportEndsAt ? new Date(dto.supportEndsAt) : undefined,
+    };
+  }
+
   @Post('generate')
   async generateLicense(
     @CurrentUser() user: any,
@@ -22,35 +34,21 @@ export class LicenseGeneratorController {
     @Body() dto: GenerateLicenseDto,
     @Res() res: Response,
   ) {
-    if (user.role !== 'SUPER_ADMIN') throw new Error('Acceso denegado');
+    this.assertSuperAdmin(user);
     try {
-      // Generar licencia basada en configuración actual
-      const signedLicense = await this.licenseGenerator.generateLicenseForTenant(tenantId, {
-        contactEmail: dto.contactEmail,
-        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-        supportEndsAt: dto.supportEndsAt ? new Date(dto.supportEndsAt) : undefined,
-      });
-
-      // Obtener slug del tenant para el nombre del archivo
+      const signedLicense = await this.licenseGenerator.generateLicenseForTenant(tenantId, this.buildOptions(dto));
       const tenantSlug = signedLicense.data.tenantSlug;
-      
-      // Guardar archivo
       const filePath = await this.licenseGenerator.saveLicenseFile(tenantSlug, signedLicense);
-      
-      // Enviar archivo como descarga
+
       res.download(filePath, `license-${tenantSlug}.json`, (err) => {
-        if (err) {
-          console.error('Error sending file:', err);
-          res.status(500).json({ error: 'Error generating license file' });
+        if (err && !res.headersSent) {
+          res.status(500).json({ error: 'Error sending license file' });
         }
       });
-
     } catch (error) {
-      console.error('Error generating license:', error);
-      res.status(500).json({ 
-        error: 'Failed to generate license',
-        message: (error as Error).message 
-      });
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to generate license', message: (error as Error).message });
+      }
     }
   }
 
@@ -60,31 +58,24 @@ export class LicenseGeneratorController {
     @Param('tenantId') tenantId: string,
     @Body() dto: GenerateLicenseDto,
   ) {
-    if (user.role !== 'SUPER_ADMIN') throw new Error('Acceso denegado');
-    try {
-      const signedLicense = await this.licenseGenerator.generateLicenseForTenant(tenantId, {
-        contactEmail: dto.contactEmail,
-        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-        supportEndsAt: dto.supportEndsAt ? new Date(dto.supportEndsAt) : undefined,
-      });
+    this.assertSuperAdmin(user);
+    const signedLicense = await this.licenseGenerator.generateLicenseForTenant(tenantId, {
+      ...this.buildOptions(dto),
+      saveToDb: false,
+    });
 
-      // Retornar preview sin guardar archivo
-      return {
-        tenant: signedLicense.data.tenantName,
-        plan: signedLicense.data.plan,
-        limits: {
-          users: signedLicense.data.maxUsers,
-          routes: signedLicense.data.maxRoutes,
-          clients: signedLicense.data.maxClients,
-        },
-        enabledModules: signedLicense.data.enabledModules,
-        expiresAt: signedLicense.data.expiresAt,
-        supportEndsAt: signedLicense.data.supportEndsAt,
-        licenseKey: `${signedLicense.data.tenantSlug}-${Date.now().toString(36)}`.toUpperCase(),
-      };
-
-    } catch (error) {
-      throw new Error(`Failed to preview license: ${(error as Error).message}`);
-    }
+    return {
+      tenant: signedLicense.data.tenantName,
+      plan: signedLicense.data.plan,
+      limits: {
+        users: signedLicense.data.maxUsers,
+        routes: signedLicense.data.maxRoutes,
+        clients: signedLicense.data.maxClients,
+      },
+      enabledModules: signedLicense.data.enabledModules,
+      expiresAt: signedLicense.data.expiresAt,
+      supportEndsAt: signedLicense.data.supportEndsAt,
+      licenseKey: `${signedLicense.data.tenantSlug}-${Date.now().toString(36)}`.toUpperCase(),
+    };
   }
 }

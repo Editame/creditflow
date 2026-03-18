@@ -48,6 +48,7 @@ export class LicenseGeneratorService {
     expiresAt?: Date;
     supportEndsAt?: Date;
     contactEmail?: string;
+    saveToDb?: boolean;
   }): Promise<SignedLicense> {
     // 1. Obtener datos del tenant
     const tenant = await this.prisma.tenant.findUnique({
@@ -105,22 +106,24 @@ export class LicenseGeneratorService {
       publicKey,
     };
 
-    // 5. Guardar registro en BD
-    await this.prisma.license.create({
-      data: {
-        licenseKey: this.generateLicenseKey(tenant.slug),
-        tenantName: tenant.name,
-        contactEmail: licenseData.contactEmail,
-        plan: tenant.plan as any,
-        modules: enabledModules as any,
-        maxRoutes: tenant.maxRoutes,
-        maxClients: tenant.maxClients,
-        maxUsers: tenant.maxUsers,
-        expiresAt: options?.expiresAt,
-        supportEndsAt: options?.supportEndsAt,
-        version: '1.0.0',
-      },
-    });
+    // 5. Guardar registro en BD solo si se solicita
+    if (options?.saveToDb !== false) {
+      await this.prisma.license.create({
+        data: {
+          licenseKey: this.generateLicenseKey(tenant.slug),
+          tenantName: tenant.name,
+          contactEmail: licenseData.contactEmail,
+          plan: tenant.plan as any,
+          modules: enabledModules as any,
+          maxRoutes: tenant.maxRoutes,
+          maxClients: tenant.maxClients,
+          maxUsers: tenant.maxUsers,
+          expiresAt: options?.expiresAt,
+          supportEndsAt: options?.supportEndsAt,
+          version: '1.0.0',
+        },
+      });
+    }
 
     return signedLicense;
   }

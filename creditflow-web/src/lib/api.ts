@@ -258,9 +258,15 @@ class ApiClient {
       const { data } = await this.client.put(`/admin/tenants/${id}/features`, { features });
       return data.data || data;
     },
-    generateLicense: async (licenseData: any): Promise<any> => {
-      const { data } = await this.client.post('/admin/licenses/generate', licenseData);
+    previewLicense: async (tenantId: string, dto: any): Promise<any> => {
+      const { data } = await this.client.post(`/admin/tenants/${tenantId}/license/preview`, dto);
       return data.data || data;
+    },
+    downloadLicense: async (tenantId: string, dto: any): Promise<Blob> => {
+      const { data } = await this.client.post(`/admin/tenants/${tenantId}/license/generate`, dto, {
+        responseType: 'blob',
+      });
+      return data;
     },
   };
 

@@ -75,11 +75,5 @@ export class AdminController {
     return this.adminService.initializeFeaturesForAllTenants();
   }
 
-  @Post('licenses/generate')
-  async generateLicense(@CurrentUser() user: any, @Body() licenseData: any) {
-    if (user.role !== 'SUPER_ADMIN') {
-      throw new Error('Acceso denegado');
-    }
-    return this.adminService.generateLicense(licenseData);
-  }
+
 }

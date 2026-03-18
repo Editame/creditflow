@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { clientsApi, loansApi } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 import { 
   ArrowLeft, 
   User, 
@@ -43,6 +44,8 @@ export default function ClienteDetallePage() {
   const [historial, setHistorial] = useState<any>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { success: showSuccess, error: showToastError } = useToast();
   const [formData, setFormData] = useState({
     fullName: '',
     idNumber: '',
@@ -101,12 +104,13 @@ export default function ClienteDetallePage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('¿Eliminar este cliente?')) return;
+    setShowDeleteModal(false);
     try {
       await clientsApi.delete(clienteId);
+      showSuccess('Cliente eliminado', 'El cliente fue eliminado correctamente');
       router.push('/dashboard/clientes');
-    } catch (error) {
-      console.error('Error deleting cliente:', error);
+    } catch (error: any) {
+      showToastError('Error', error.response?.data?.message || 'No se pudo eliminar el cliente');
     }
   };
 
@@ -431,13 +435,29 @@ export default function ClienteDetallePage() {
 
         {/* Delete Button */}
         <button
-          onClick={handleDelete}
+          onClick={() => setShowDeleteModal(true)}
           className="w-full py-4 bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 touch-manipulation"
         >
           <Trash2 className="w-5 h-5" />
           <span>Eliminar Cliente</span>
         </button>
       </div>
+
+      {/* Delete Confirm Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar Cliente</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              ¿Estás seguro de eliminar a <span className="font-semibold">{cliente.fullName}</span>?
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl">Cancelar</button>
+              <button onClick={handleDelete} className="flex-1 py-3 bg-red-600 text-white font-medium rounded-xl">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Expanded Image Modal */}
       {expandedImage && (

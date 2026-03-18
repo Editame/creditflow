@@ -95,7 +95,7 @@ export function Sidebar() {
               </div>
             </div>
             <div className="mt-4 p-3 bg-slate-600 bg-opacity-30 rounded-lg">
-              <p className="text-white text-sm font-medium">{user?.username}</p>
+              <p className="text-white text-sm font-medium">{user?.fullName || user?.username}</p>
               <p className="text-slate-200 text-xs">{user?.role}</p>
             </div>
           </div>

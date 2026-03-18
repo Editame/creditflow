@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Building2, Users, Crown, Key, AlertTriangle, Edit, Trash2, Eye, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 
@@ -54,6 +55,8 @@ const PLAN_LIMITS = {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { success: showSuccess, error: showError } = useToast();
+  const [confirmModal, setConfirmModal] = useState<{ show: boolean; tenant: Tenant | null }>({ show: false, tenant: null });
   const [stats, setStats] = useState<AdminStats>({
     totalTenants: 0,
     totalUsers: 0,
@@ -145,11 +148,9 @@ export default function AdminDashboard() {
       setShowEditForm(false);
       setEditingTenant(null);
       await loadData();
-      alert('¡Empresa actualizada exitosamente!');
-      
+      showSuccess('Empresa actualizada', `${createForm.nombre} se actualizó correctamente`);
     } catch (error: any) {
-      console.error('Error updating tenant:', error);
-      alert('Error al actualizar la empresa: ' + (error.response?.data?.message || error.message));
+      showError('Error', error.response?.data?.message || error.message);
     }
   };
 
@@ -158,18 +159,16 @@ export default function AdminDashboard() {
     setShowViewModal(true);
   };
 
-  const handleDeleteTenant = async (tenant: Tenant) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar la empresa "${tenant.name}"? Esta acción no se puede deshacer.`)) {
-      return;
-    }
-    
+  const handleDeleteTenant = async () => {
+    const tenant = confirmModal.tenant;
+    if (!tenant) return;
+    setConfirmModal({ show: false, tenant: null });
     try {
       await api.admin.deleteTenant(tenant.id);
       await loadData();
-      alert('Empresa eliminada exitosamente');
+      showSuccess('Empresa eliminada', `${tenant.name} fue eliminada correctamente`);
     } catch (error: any) {
-      console.error('Error deleting tenant:', error);
-      alert('Error al eliminar la empresa: ' + (error.response?.data?.message || error.message));
+      showError('Error', error.response?.data?.message || error.message);
     }
   };
 
@@ -190,16 +189,10 @@ export default function AdminDashboard() {
         contactoEmail: '',
         adminUser: { username: '', email: '', password: '' }
       });
-      
-      // Reload data to show the new tenant
       await loadData();
-      
-      // Show success message
-      alert('¡Empresa creada exitosamente!');
-      
+      showSuccess('Empresa creada', '¡La empresa se creó exitosamente!');
     } catch (error: any) {
-      console.error('Error creating tenant:', error);
-      alert('Error al crear la empresa: ' + (error.response?.data?.message || error.message));
+      showError('Error', error.response?.data?.message || error.message);
     }
   };
 
@@ -408,7 +401,7 @@ export default function AdminDashboard() {
                           <Edit size={16} />
                         </button>
                         <button 
-                          onClick={() => handleDeleteTenant(tenant)}
+                          onClick={() => setConfirmModal({ show: true, tenant })}
                           className="p-1 hover:bg-red-100 rounded text-red-600 transition-colors"
                           title="Eliminar empresa"
                         >
@@ -854,6 +847,32 @@ export default function AdminDashboard() {
                   Cerrar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Modal */}
+      {confirmModal.show && confirmModal.tenant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Eliminar Empresa</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              ¿Estás seguro de que quieres eliminar <span className="font-semibold">{confirmModal.tenant.name}</span>? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setConfirmModal({ show: false, tenant: null })}
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteTenant}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                Eliminar
+              </button>
             </div>
           </div>
         </div>

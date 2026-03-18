@@ -23,7 +23,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Para SUPER_ADMIN, no validar tenant
     if (user.role !== 'SUPER_ADMIN' && (!user.tenant || !user.tenant.active)) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -51,6 +50,7 @@ export class AuthService {
         id: user.id,
         tenantId: user.tenantId,
         username: user.username,
+        fullName: user.fullName,
         email: user.email,
         role: user.role as any,
         active: user.active,
@@ -80,7 +80,6 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // Auto-inicializar features si el tenant no tiene ninguna
     let features = user.tenant?.features || [];
     if (user.tenant && features.length === 0) {
       const defaultFeatures = this.getDefaultFeaturesForPlan(user.tenant.plan);
@@ -98,6 +97,7 @@ export class AuthService {
       id: user.id,
       tenantId: user.tenantId,
       username: user.username,
+      fullName: user.fullName,
       email: user.email,
       role: user.role as any,
       active: user.active,

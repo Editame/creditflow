@@ -35,9 +35,11 @@ export default function GestionUsuariosPage() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   const [formData, setFormData] = useState<CreateUserDto>({
     username: '',
+    fullName: '',
     email: '',
     password: '',
     role: 'COLLECTOR' as UserRole
@@ -74,6 +76,7 @@ export default function GestionUsuariosPage() {
   const resetForm = () => {
     setFormData({
       username: '',
+      fullName: '',
       email: '',
       password: '',
       role: 'COLLECTOR' as UserRole
@@ -88,6 +91,7 @@ export default function GestionUsuariosPage() {
     setEditingUser(usuario);
     setFormData({
       username: usuario.username,
+      fullName: (usuario as any).fullName || '',
       email: usuario.email || '',
       password: '',
       role: usuario.role
@@ -115,6 +119,7 @@ export default function GestionUsuariosPage() {
 
       const payload: CreateUserDto | UpdateUserDto = {
         username: formData.username,
+        fullName: formData.fullName || undefined,
         email: formData.email || undefined,
         role: formData.role,
         ...((!editingUser || formData.password) && { password: formData.password })
@@ -139,9 +144,10 @@ export default function GestionUsuariosPage() {
     }
   };
 
-  const handleDelete = async (usuario: User) => {
-    if (!confirm(`¿Eliminar usuario ${usuario.username}?`)) return;
-    
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const usuario = deleteTarget;
+    setDeleteTarget(null);
     try {
       await api.users.delete(usuario.id);
       success('Usuario eliminado', `${usuario.username} ha sido eliminado`);
@@ -305,10 +311,8 @@ export default function GestionUsuariosPage() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{usuario.username}</p>
-                      {usuario.email && (
-                        <p className="text-sm text-gray-500">{usuario.email}</p>
-                      )}
+                      <p className="font-medium text-gray-900">{(usuario as any).fullName || usuario.username}</p>
+                      <p className="text-sm text-gray-500">{usuario.username}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -320,7 +324,7 @@ export default function GestionUsuariosPage() {
                     </button>
                     {usuario.id !== currentUser?.id && (
                       <button
-                        onClick={() => handleDelete(usuario)}
+                        onClick={() => setDeleteTarget(usuario)}
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-100 transition-colors"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
@@ -347,6 +351,22 @@ export default function GestionUsuariosPage() {
         )}
       </div>
 
+      {/* Delete Confirm Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar Usuario</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              ¿Estás seguro de eliminar a <span className="font-semibold">{deleteTarget.username}</span>?
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl">Cancelar</button>
+              <button onClick={handleDelete} className="flex-1 py-3 bg-red-600 text-white font-medium rounded-xl">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -369,6 +389,17 @@ export default function GestionUsuariosPage() {
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  placeholder="Ej: Juan Pérez"
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 />
               </div>
