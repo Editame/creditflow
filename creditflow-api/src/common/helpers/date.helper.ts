@@ -73,12 +73,23 @@ export function getLocalDateFromUTC(date: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0));
 }
 
+function getDaysPerPeriod(frecuencia: PaymentFrequency): number {
+  switch (frecuencia) {
+    case PaymentFrequency.DAILY: return 1;
+    case PaymentFrequency.WEEKLY: return 7;
+    case PaymentFrequency.BIWEEKLY: return 15;
+    case PaymentFrequency.MONTHLY: return 30;
+    default: return 1;
+  }
+}
+
 export function aplicaCobroHoy(fechaInicioCobro: Date, frecuencia: PaymentFrequency): boolean {
   const inicio = getStartOfDayUTC(fechaInicioCobro);
   const hoy = getTodayInTimezone();
   if (hoy.getTime() < inicio.getTime()) return false;
   if (frecuencia === PaymentFrequency.DAILY) return true;
-  return inicio.getUTCDay() === hoy.getUTCDay();
+  const diffDays = Math.floor((hoy.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+  return diffDays % getDaysPerPeriod(frecuencia) === 0;
 }
 
 export function calculatePeriodsElapsed(fechaInicioCobro: Date, frecuencia: PaymentFrequency): number {
@@ -87,7 +98,7 @@ export function calculatePeriodsElapsed(fechaInicioCobro: Date, frecuencia: Paym
   if (now.getTime() <= start.getTime()) return 0;
   const diffTime = now.getTime() - start.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return frecuencia === PaymentFrequency.DAILY ? diffDays : Math.floor(diffDays / 7);
+  return frecuencia === PaymentFrequency.DAILY ? diffDays : Math.floor(diffDays / getDaysPerPeriod(frecuencia));
 }
 
 export function addDaysToDate(date: Date, days: number): Date {

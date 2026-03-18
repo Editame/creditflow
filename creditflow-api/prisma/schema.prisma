@@ -36,6 +36,8 @@ enum UserRole {
 enum PaymentFrequency {
   DAILY
   WEEKLY
+  BIWEEKLY
+  MONTHLY
 }
 
 enum LoanStatus {
