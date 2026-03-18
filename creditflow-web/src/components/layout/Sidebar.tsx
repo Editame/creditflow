@@ -65,12 +65,9 @@ export function Sidebar() {
     ...(isAdmin ? adminMenuItems : []),
   ];
   const dashboardItem = visibleMenuItems.find(i => i.href === '/dashboard')!;
-  const needsMore = allMobileItems.length > 4;
-  // If ≤4 others: show 2 left + Dashboard + 2 right (pad with empty if needed)
-  // If >4: show 2 left + Dashboard + 1 right + "Más"
   const leftItems = allMobileItems.slice(0, 2);
-  const rightItems = needsMore ? allMobileItems.slice(2, 3) : allMobileItems.slice(2, 4);
-  const mobileExtraItems = needsMore ? allMobileItems.slice(3) : [];
+  const rightItems = allMobileItems.slice(2, 3);
+  const mobileExtraItems = allMobileItems.slice(3);
   const isExtraActive = mobileExtraItems.some(item => isActive(item.href));
 
   return (
@@ -222,21 +219,19 @@ export function Sidebar() {
             );
           })}
 
-          {/* "Más" only if >5 total */}
-          {needsMore && (
-            <button
-              onClick={() => setShowMore(true)}
-              className={`flex flex-col items-center gap-0.5 py-2 px-3 ${isExtraActive ? 'text-slate-800' : 'text-slate-400'}`}
-            >
-              <MoreHorizontal size={22} strokeWidth={isExtraActive ? 2.5 : 1.8} />
-              <span className={`text-[10px] ${isExtraActive ? 'font-semibold' : 'font-medium'}`}>Más</span>
-            </button>
-          )}
+          {/* "Más" always — shows extra items + logout */}
+          <button
+            onClick={() => setShowMore(true)}
+            className={`flex flex-col items-center gap-0.5 py-2 px-3 ${isExtraActive ? 'text-slate-800' : 'text-slate-400'}`}
+          >
+            <MoreHorizontal size={22} strokeWidth={isExtraActive ? 2.5 : 1.8} />
+            <span className={`text-[10px] ${isExtraActive ? 'font-semibold' : 'font-medium'}`}>Más</span>
+          </button>
         </div>
       </nav>
 
       {/* ========== MOBILE "MÁS" SHEET ========== */}
-      {showMore && needsMore && (
+      {showMore && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowMore(false)} />
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl safe-area-bottom animate-slide-up">

@@ -68,22 +68,26 @@ export default function DashboardPage() {
     }
   };
 
-  const mainStats = [
-    { icon: Users, label: 'Clientes', value: stats.totalClientes.toString(), color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-    { icon: CreditCard, label: 'Préstamos', value: stats.prestamosActivos.toString(), color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-    { icon: MapPin, label: 'Rutas', value: stats.totalRutas.toString(), color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
-    { icon: DollarSign, label: 'Recaudado Hoy', value: `$${stats.recaudadoHoy.toLocaleString()}`, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-  ];
-
-  const secondaryStats = [
-    { icon: TrendingUp, label: 'Cartera Activa', value: `$${stats.carteraActiva.toLocaleString()}`, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { icon: AlertCircle, label: 'En Mora', value: `${stats.prestamosMora} ($${stats.carteraMora.toLocaleString()})`, color: 'text-red-600', bg: 'bg-red-50' },
-    { icon: Calendar, label: 'Recuperación', value: `${stats.tasaRecuperacion}%`, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { icon: DollarSign, label: 'Liquidado Día', value: `$${stats.liquidadoDia.toLocaleString()}`, color: stats.liquidadoDia >= 0 ? 'text-green-600' : 'text-red-600', bg: stats.liquidadoDia >= 0 ? 'bg-green-50' : 'bg-red-50' },
-  ];
-
   const enabledFeatures = user?.enabledFeatures || [];
   const hasFeature = (f: string) => enabledFeatures.includes(f);
+
+  const hasLoans = hasFeature('LOANS_BASIC');
+  const hasClients = hasFeature('CLIENTS_BASIC');
+  const hasPayments = hasFeature('PAYMENTS_BASIC');
+
+  const mainStats = [
+    hasClients && { icon: Users, label: 'Clientes', value: stats.totalClientes.toString(), color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+    hasLoans && { icon: CreditCard, label: 'Préstamos', value: stats.prestamosActivos.toString(), color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
+    hasClients && { icon: MapPin, label: 'Rutas', value: stats.totalRutas.toString(), color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+    hasPayments && { icon: DollarSign, label: 'Recaudado Hoy', value: `$${stats.recaudadoHoy.toLocaleString()}`, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  ].filter(Boolean) as any[];
+
+  const secondaryStats = [
+    hasLoans && { icon: TrendingUp, label: 'Cartera Activa', value: `$${stats.carteraActiva.toLocaleString()}`, color: 'text-orange-600', bg: 'bg-orange-50' },
+    hasLoans && { icon: AlertCircle, label: 'En Mora', value: `${stats.prestamosMora} ($${stats.carteraMora.toLocaleString()})`, color: 'text-red-600', bg: 'bg-red-50' },
+    hasPayments && { icon: Calendar, label: 'Recuperación', value: `${stats.tasaRecuperacion}%`, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    hasPayments && { icon: DollarSign, label: 'Liquidado Día', value: `$${stats.liquidadoDia.toLocaleString()}`, color: stats.liquidadoDia >= 0 ? 'text-green-600' : 'text-red-600', bg: stats.liquidadoDia >= 0 ? 'bg-green-50' : 'bg-red-50' },
+  ].filter(Boolean) as any[];
 
   const quickActions = [
     { icon: Users, label: 'Nuevo Cliente', href: '/dashboard/clientes/nuevo', feature: 'CLIENTS_BASIC', bg: 'bg-blue-50', color: 'text-blue-600' },
@@ -124,41 +128,46 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Saldo en Caja - Destacado */}
-      <div className="bg-white rounded-xl border border-amber-200 border-l-4 p-4 lg:p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs lg:text-sm font-medium text-slate-500">Saldo en Caja</p>
-            <p className="text-2xl lg:text-3xl font-bold text-slate-900">${stats.saldoCaja.toLocaleString()}</p>
-          </div>
-          <div className="p-2.5 lg:p-3 rounded-xl bg-amber-50">
-            <Wallet className="text-amber-600 w-5 h-5 lg:w-6 lg:h-6" />
+      {/* Saldo en Caja - Destacado (only if has loans/payments) */}
+      {(hasLoans || hasPayments) && (
+        <div className="bg-white rounded-xl border border-amber-200 border-l-4 p-4 lg:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs lg:text-sm font-medium text-slate-500">Saldo en Caja</p>
+              <p className="text-2xl lg:text-3xl font-bold text-slate-900">${stats.saldoCaja.toLocaleString()}</p>
+            </div>
+            <div className="p-2.5 lg:p-3 rounded-xl bg-amber-50">
+              <Wallet className="text-amber-600 w-5 h-5 lg:w-6 lg:h-6" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Main Stats Grid - 2 cols mobile, 4 cols desktop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
-        {mainStats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className={`bg-white rounded-xl border-l-4 ${stat.border} p-3 lg:p-6 shadow-sm`}>
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] lg:text-sm font-medium text-slate-500 truncate">{stat.label}</p>
-                  <p className="text-lg lg:text-3xl font-bold text-slate-900 mt-0.5">{stat.value}</p>
-                </div>
-                <div className={`p-2 lg:p-3 rounded-lg lg:rounded-xl ${stat.bg} ml-2 flex-shrink-0`}>
-                  <Icon className={`${stat.color} w-4 h-4 lg:w-6 lg:h-6`} />
+      {/* Main Stats Grid */}
+      {mainStats.length > 0 && (
+        <div className={`grid grid-cols-2 ${mainStats.length > 2 ? 'lg:grid-cols-4' : 'lg:grid-cols-2'} gap-3 lg:gap-6`}>
+          {mainStats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className={`bg-white rounded-xl border-l-4 ${stat.border} p-3 lg:p-6 shadow-sm`}>
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] lg:text-sm font-medium text-slate-500 truncate">{stat.label}</p>
+                    <p className="text-lg lg:text-3xl font-bold text-slate-900 mt-0.5">{stat.value}</p>
+                  </div>
+                  <div className={`p-2 lg:p-3 rounded-lg lg:rounded-xl ${stat.bg} ml-2 flex-shrink-0`}>
+                    <Icon className={`${stat.color} w-4 h-4 lg:w-6 lg:h-6`} />
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Secondary Stats - 2 cols mobile, 2 cols desktop */}
-      <div className="grid grid-cols-2 gap-3 lg:gap-6">
+      {/* Secondary Stats */}
+      {secondaryStats.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 lg:gap-6">
         {secondaryStats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -175,7 +184,8 @@ export default function DashboardPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Investment Stats - only if feature enabled */}
       {investmentStats && (
