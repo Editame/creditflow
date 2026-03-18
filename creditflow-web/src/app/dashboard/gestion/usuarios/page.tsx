@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
+import { handleLimitError } from '@/lib/errorHandlers';
 import {
   ArrowLeft,
   Plus,
@@ -23,6 +25,7 @@ import type { User, CreateUserDto, UpdateUserDto, UserRole } from '@creditflow/s
 export default function GestionUsuariosPage() {
   const router = useRouter();
   const { user: currentUser } = useAuth();
+  const { success, error: showError } = useToast();
   const [usuarios, setUsuarios] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -101,12 +104,12 @@ export default function GestionUsuariosPage() {
     try {
       // Validaciones
       if (!editingUser && formData.password !== confirmPassword) {
-        setError('Las contraseñas no coinciden');
+        showError('Error de validación', 'Las contraseñas no coinciden');
         return;
       }
 
       if (!editingUser && formData.password.length < 6) {
-        setError('La contraseña debe tener al menos 6 caracteres');
+        showError('Error de validación', 'La contraseña debe tener al menos 6 caracteres');
         return;
       }
 
@@ -119,15 +122,18 @@ export default function GestionUsuariosPage() {
 
       if (editingUser) {
         await api.users.update(editingUser.id, payload);
+        success('Usuario actualizado', `${formData.username} ha sido actualizado exitosamente`);
       } else {
         await api.users.create(payload as CreateUserDto);
+        success('Usuario creado', `${formData.username} ha sido creado exitosamente`);
       }
 
       await fetchData();
       setShowModal(false);
       resetForm();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar usuario');
+      const { title, message } = handleLimitError(err, 'usuarios');
+      showError(title, message);
     } finally {
       setIsSubmitting(false);
     }
@@ -138,9 +144,11 @@ export default function GestionUsuariosPage() {
     
     try {
       await api.users.delete(usuario.id);
+      success('Usuario eliminado', `${usuario.username} ha sido eliminado`);
       await fetchData();
-    } catch (error) {
-      console.error('Error deleting usuario:', error);
+    } catch (err: any) {
+      const { title, message } = handleLimitError(err, 'usuarios');
+      showError(title, message);
     }
   };
 
