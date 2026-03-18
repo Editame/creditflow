@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Building2, Users, Crown, Key, AlertTriangle, Edit, Trash2, Eye, User } from 'lucide-react';
+import { Building2, Users, Crown, Key, AlertTriangle, Edit, Trash2, Eye, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
@@ -385,6 +385,20 @@ export default function AdminDashboard() {
                           title="Ver detalles"
                         >
                           <Eye size={16} />
+                        </button>
+                        <button 
+                          onClick={() => window.location.href = `/admin/tenants/${tenant.id}/features`}
+                          className="p-1 hover:bg-purple-100 rounded text-purple-600 transition-colors"
+                          title="Configurar módulos"
+                        >
+                          <Settings size={16} />
+                        </button>
+                        <button 
+                          onClick={() => window.location.href = `/admin/tenants/${tenant.id}/license`}
+                          className="p-1 hover:bg-green-100 rounded text-green-600 transition-colors"
+                          title="Generar licencia"
+                        >
+                          <Key size={16} />
                         </button>
                         <button 
                           onClick={() => handleEditTenant(tenant)}
