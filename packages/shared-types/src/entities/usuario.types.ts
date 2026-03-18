@@ -16,6 +16,7 @@ export interface User {
     slug: string;
     plan: string;
   };
+  enabledFeatures?: string[];
 }
 
 export interface UserSafe extends Omit<User, 'password'> {
