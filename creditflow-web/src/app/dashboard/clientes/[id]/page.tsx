@@ -115,16 +115,16 @@ export default function ClienteDetallePage() {
     
     try {
       setError('');
-      if (cliente.bloqueado) {
-        await clientsApi.update(cliente.id, { bloqueado: false, motivoBloqueo: '' } as any);
-        setCliente({ ...cliente, bloqueado: false, motivoBloqueo: undefined });
+      if (cliente.blocked) {
+        await clientsApi.update(cliente.id, { blocked: false, blockReason: '' } as any);
+        setCliente({ ...cliente, blocked: false, blockReason: undefined });
       } else {
         if (!motivoBloqueo.trim()) {
           setError('Debe indicar el motivo del bloqueo');
           return;
         }
-        await clientsApi.update(cliente.id, { bloqueado: true, motivoBloqueo } as any);
-        setCliente({ ...cliente, bloqueado: true, motivoBloqueo });
+        await clientsApi.update(cliente.id, { blocked: true, blockReason: motivoBloqueo } as any);
+        setCliente({ ...cliente, blocked: true, blockReason: motivoBloqueo });
         setShowBlockModal(false);
         setMotivoBloqueo('');
       }
@@ -146,29 +146,38 @@ export default function ClienteDetallePage() {
     }
   };
 
-  const getStatusIcon = (estado: string) => {
-    switch (estado) {
-      case 'ACTIVO':
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
         return <Clock className="w-4 h-4 text-purple-600" />;
-      case 'MORA':
+      case 'OVERDUE':
         return <AlertCircle className="w-4 h-4 text-red-600" />;
-      case 'PAGADO':
+      case 'PAID':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       default:
         return null;
     }
   };
 
-  const getStatusStyle = (estado: string) => {
-    switch (estado) {
-      case 'ACTIVO':
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
         return 'bg-purple-100 text-purple-700';
-      case 'MORA':
+      case 'OVERDUE':
         return 'bg-red-100 text-red-700';
-      case 'PAGADO':
+      case 'PAID':
         return 'bg-green-100 text-green-700';
       default:
         return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'ACTIVE': return 'Activo';
+      case 'OVERDUE': return 'En mora';
+      case 'PAID': return 'Pagado';
+      default: return status;
     }
   };
 
@@ -192,10 +201,10 @@ export default function ClienteDetallePage() {
   }
 
   const totalDeuda = prestamos
-    .filter(p => p.estado !== 'PAGADO')
-    .reduce((sum, p) => sum + Number(p.saldoPendiente || 0), 0);
+    .filter(p => p.status !== 'PAID')
+    .reduce((sum, p) => sum + Number(p.pendingBalance || 0), 0);
 
-  const prestamosActivos = prestamos.filter(p => p.estado === 'ACTIVO').length;
+  const prestamosActivos = prestamos.filter(p => p.status === 'ACTIVE').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -222,7 +231,7 @@ export default function ClienteDetallePage() {
           <div className="flex-1">
             <h2 className="text-xl font-bold text-white">{cliente.fullName}</h2>
             <p className="text-purple-100 text-sm">CC: {cliente.idNumber}</p>
-            {cliente.bloqueado && (
+            {cliente.blocked && (
               <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-red-500 text-white text-xs font-medium rounded-full">
                 <Ban className="w-3 h-3" />
                 Bloqueado
@@ -306,13 +315,13 @@ export default function ClienteDetallePage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Foto de Cédula</p>
-                {cliente.urlFotoCedula ? (
+                {cliente.idPhotoUrl ? (
                   <div className="mt-1">
                     <div 
                       className="relative w-32 h-32 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => setExpandedImage(cliente.urlFotoCedula || null)}
+                      onClick={() => setExpandedImage(cliente.idPhotoUrl || null)}
                     >
-                      <Image src={cliente.urlFotoCedula} alt="Foto de Cédula" fill className="object-cover" />
+                      <Image src={cliente.idPhotoUrl} alt="Foto de Cédula" fill className="object-cover" />
                     </div>
                     <p className="text-xs text-gray-400 mt-1">Click para ampliar</p>
                   </div>
@@ -339,20 +348,20 @@ export default function ClienteDetallePage() {
             </button>
             
             <button
-              onClick={() => cliente.bloqueado ? handleToggleBlock() : setShowBlockModal(true)}
+              onClick={() => cliente.blocked ? handleToggleBlock() : setShowBlockModal(true)}
               className={`flex flex-col items-center gap-2 p-4 rounded-xl active:opacity-80 transition-colors ${
-                cliente.bloqueado ? 'bg-green-50' : 'bg-red-50'
+                cliente.blocked ? 'bg-green-50' : 'bg-red-50'
               }`}
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                cliente.bloqueado ? 'bg-green-600' : 'bg-red-600'
+                cliente.blocked ? 'bg-green-600' : 'bg-red-600'
               }`}>
-                {cliente.bloqueado ? <Unlock className="w-5 h-5 text-white" /> : <Ban className="w-5 h-5 text-white" />}
+                {cliente.blocked ? <Unlock className="w-5 h-5 text-white" /> : <Ban className="w-5 h-5 text-white" />}
               </div>
               <span className={`text-sm font-medium ${
-                cliente.bloqueado ? 'text-green-700' : 'text-red-700'
+                cliente.blocked ? 'text-green-700' : 'text-red-700'
               }`}>
-                {cliente.bloqueado ? 'Desbloquear' : 'Bloquear'}
+                {cliente.blocked ? 'Desbloquear' : 'Bloquear'}
               </span>
             </button>
 
@@ -398,19 +407,19 @@ export default function ClienteDetallePage() {
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-xl active:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    {getStatusIcon(prestamo.estado)}
+                    {getStatusIcon(prestamo.status)}
                     <div>
                       <p className="font-medium text-gray-900">
-                        ${Number(prestamo.montoPrestado).toLocaleString()}
+                        ${Number(prestamo.loanAmount).toLocaleString()}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Saldo: ${Number(prestamo.saldoPendiente).toLocaleString()}
+                        Saldo: ${Number(prestamo.pendingBalance).toLocaleString()}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusStyle(prestamo.estado)}`}>
-                      {prestamo.estado}
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusStyle(prestamo.status)}`}>
+                      {getStatusLabel(prestamo.status)}
                     </span>
                     <ChevronRight className="w-4 h-4 text-gray-300" />
                   </div>

@@ -23,7 +23,7 @@ export default function PrestamosPage() {
   const router = useRouter();
   const [prestamos, setPrestamos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'todos' | 'ACTIVO' | 'MORA' | 'PAGADO'>('todos');
+  const [filter, setFilter] = useState<'todos' | 'ACTIVE' | 'OVERDUE' | 'PAID'>('todos');
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('grouped');
   const [collapsedClients, setCollapsedClients] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,28 +62,28 @@ export default function PrestamosPage() {
   }, [limit]);
 
   const filteredPrestamos = prestamos.filter((p) => {
-    const matchesFilter = filter === 'todos' || p.estado === filter;
+    const matchesFilter = filter === 'todos' || p.status === filter;
     if (!matchesFilter) return false;
 
-    const matchesRuta = selectedRuta === null || p.cliente?.routeId === selectedRuta;
+    const matchesRuta = selectedRuta === null || p.client?.routeId === selectedRuta;
     if (!matchesRuta) return false;
 
     if (searchTerm.trim() === '') return true;
 
     const search = searchTerm.toLowerCase().trim();
-    const nombreCliente = p.cliente?.fullName?.toLowerCase() || '';
-    const cedulaCliente = p.cliente?.idNumber?.toLowerCase() || '';
+    const nombreCliente = p.client?.fullName?.toLowerCase() || '';
+    const cedulaCliente = p.client?.idNumber?.toLowerCase() || '';
 
     return nombreCliente.includes(search) || cedulaCliente.includes(search);
   });
 
   const prestamosPorCliente = filteredPrestamos.reduce((acc, prestamo) => {
-    if (!prestamo.cliente) return acc;
+    if (!prestamo.client) return acc;
     
-    const clienteId = prestamo.cliente.id;
+    const clienteId = prestamo.client.id;
     if (!acc[clienteId]) {
       acc[clienteId] = {
-        cliente: prestamo.cliente,
+        cliente: prestamo.client,
         prestamos: [],
         stats: { activos: 0, mora: 0, pagados: 0, total: 0 }
       };
@@ -92,14 +92,14 @@ export default function PrestamosPage() {
     acc[clienteId].prestamos.push(prestamo);
     acc[clienteId].stats.total++;
     
-    switch (prestamo.estado) {
-      case 'ACTIVO':
+    switch (prestamo.status) {
+      case 'ACTIVE':
         acc[clienteId].stats.activos++;
         break;
-      case 'MORA':
+      case 'OVERDUE':
         acc[clienteId].stats.mora++;
         break;
-      case 'PAGADO':
+      case 'PAID':
         acc[clienteId].stats.pagados++;
         break;
     }
@@ -119,40 +119,49 @@ export default function PrestamosPage() {
     });
   };
 
-  const getStatusIcon = (estado: string) => {
-    switch (estado) {
-      case 'ACTIVO':
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
         return <Clock className="w-4 h-4 text-purple-600" />;
-      case 'MORA':
+      case 'OVERDUE':
         return <AlertCircle className="w-4 h-4 text-red-600" />;
-      case 'PAGADO':
+      case 'PAID':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       default:
         return null;
     }
   };
 
-  const getStatusStyle = (estado: string) => {
-    switch (estado) {
-      case 'ACTIVO':
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
         return 'bg-purple-100 text-purple-700';
-      case 'MORA':
+      case 'OVERDUE':
         return 'bg-red-100 text-red-700';
-      case 'PAGADO':
+      case 'PAID':
         return 'bg-green-100 text-green-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'ACTIVE': return 'Activo';
+      case 'OVERDUE': return 'En mora';
+      case 'PAID': return 'Pagado';
+      default: return status;
+    }
+  };
+
   const stats = {
-    activos: filteredPrestamos.filter((p) => p.estado === 'ACTIVO').length,
-    mora: filteredPrestamos.filter((p) => p.estado === 'MORA').length,
-    pagados: filteredPrestamos.filter((p) => p.estado === 'PAGADO').length,
+    activos: filteredPrestamos.filter((p) => p.status === 'ACTIVE').length,
+    mora: filteredPrestamos.filter((p) => p.status === 'OVERDUE').length,
+    pagados: filteredPrestamos.filter((p) => p.status === 'PAID').length,
   };
 
   const prestamosPorRuta = prestamos.reduce((acc, p) => {
-    const rutaId = p.cliente?.routeId;
+    const rutaId = p.client?.routeId;
     if (rutaId) {
       acc[rutaId] = (acc[rutaId] || 0) + 1;
     }
@@ -209,9 +218,9 @@ export default function PrestamosPage() {
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
           {[
             { key: 'todos', label: 'Todos', count: filteredPrestamos.length },
-            { key: 'ACTIVO', label: 'Activos', count: stats.activos },
-            { key: 'MORA', label: 'En mora', count: stats.mora },
-            { key: 'PAGADO', label: 'Pagados', count: stats.pagados },
+            { key: 'ACTIVE', label: 'Activos', count: stats.activos },
+            { key: 'OVERDUE', label: 'En mora', count: stats.mora },
+            { key: 'PAID', label: 'Pagados', count: stats.pagados },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -348,8 +357,8 @@ export default function PrestamosPage() {
             <div className="space-y-3">
               {(Object.values(prestamosPorCliente) as Array<{ cliente: any; prestamos: any[]; stats: any }>).slice(startIndex, endIndex).map(({ cliente, prestamos: clientPrestamos, stats }) => {
                 const isCollapsed = collapsedClients.has(cliente.id);
-                const totalPrestado = clientPrestamos.reduce((sum, p) => sum + Number(p.montoPrestado), 0);
-                const totalSaldo = clientPrestamos.reduce((sum, p) => sum + Number(p.saldoPendiente), 0);
+                const totalPrestado = clientPrestamos.reduce((sum, p) => sum + Number(p.loanAmount), 0);
+                const totalSaldo = clientPrestamos.reduce((sum, p) => sum + Number(p.pendingBalance), 0);
 
                 return (
                   <div key={cliente.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -410,12 +419,12 @@ export default function PrestamosPage() {
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                {getStatusIcon(prestamo.estado)}
-                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusStyle(prestamo.estado)}`}>
-                                  {prestamo.estado}
+                                {getStatusIcon(prestamo.status)}
+                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusStyle(prestamo.status)}`}>
+                                  {getStatusLabel(prestamo.status)}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  {prestamo.frecuenciaPago === 'DIARIO' ? 'Diario' : 'Semanal'}
+                                  {prestamo.paymentFrequency === 'DAILY' ? 'Diario' : 'Semanal'}
                                 </span>
                               </div>
                             </div>
@@ -423,19 +432,19 @@ export default function PrestamosPage() {
                               <div>
                                 <p className="text-gray-500">Prestado</p>
                                 <p className="font-semibold text-gray-900">
-                                  ${Number(prestamo.montoPrestado).toLocaleString()}
+                                  ${Number(prestamo.loanAmount).toLocaleString()}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-gray-500">Cuota</p>
                                 <p className="font-semibold text-gray-900">
-                                  ${Number(prestamo.valorCuota).toLocaleString()}
+                                  ${Number(prestamo.installmentValue).toLocaleString()}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-gray-500">Saldo</p>
                                 <p className="font-semibold text-purple-600">
-                                  ${Number(prestamo.saldoPendiente).toLocaleString()}
+                                  ${Number(prestamo.pendingBalance).toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -457,28 +466,28 @@ export default function PrestamosPage() {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      {getStatusIcon(prestamo.estado)}
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusStyle(prestamo.estado)}`}>
-                        {prestamo.estado}
+                      {getStatusIcon(prestamo.status)}
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusStyle(prestamo.status)}`}>
+                        {getStatusLabel(prestamo.status)}
                       </span>
                     </div>
                     <span className="text-xs text-gray-500">
-                      {prestamo.frecuenciaPago === 'DIARIO' ? 'Diario' : 'Semanal'}
+                      {prestamo.paymentFrequency === 'DAILY' ? 'Diario' : 'Semanal'}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                       <span className="text-gray-600 font-semibold">
-                        {prestamo.cliente?.fullName?.charAt(0) || '?'}
+                        {prestamo.client?.fullName?.charAt(0) || '?'}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 truncate">
-                        {prestamo.cliente?.fullName || 'Cliente'}
+                        {prestamo.client?.fullName || 'Cliente'}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Inicio: {formatBusinessDate(prestamo.fechaInicio)}
+                        Inicio: {formatBusinessDate(prestamo.disbursementDate)}
                       </p>
                     </div>
                   </div>
@@ -487,19 +496,19 @@ export default function PrestamosPage() {
                     <div>
                       <p className="text-xs text-gray-500">Prestado</p>
                       <p className="font-semibold text-gray-900">
-                        ${Number(prestamo.montoPrestado).toLocaleString()}
+                        ${Number(prestamo.loanAmount).toLocaleString()}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Cuota</p>
                       <p className="font-semibold text-gray-900">
-                        ${Number(prestamo.valorCuota).toLocaleString()}
+                        ${Number(prestamo.installmentValue).toLocaleString()}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Saldo</p>
                       <p className="font-semibold text-purple-600">
-                        ${Number(prestamo.saldoPendiente).toLocaleString()}
+                        ${Number(prestamo.pendingBalance).toLocaleString()}
                       </p>
                     </div>
                   </div>

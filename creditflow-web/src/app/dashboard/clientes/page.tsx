@@ -11,14 +11,16 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchClientes = async () => {
       try {
         const res = await api.clients.getAll();
-        setClientes(res);
-      } catch (error) {
-        console.error('Error fetching clientes:', error);
+        setClientes(Array.isArray(res) ? res : []);
+      } catch (err: any) {
+        console.error('Error fetching clientes:', err);
+        setError(err.response?.data?.message || err.message || 'Error al cargar clientes');
       } finally {
         setIsLoading(false);
       }
@@ -74,6 +76,12 @@ export default function ClientesPage() {
           <span className="font-semibold">{filteredClientes.length}</span> clientes encontrados
         </p>
       </div>
+
+      {error && (
+        <div className="mx-4 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Clientes List */}
       <div className="p-4">
