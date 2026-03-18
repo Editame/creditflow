@@ -76,35 +76,17 @@ export class FeaturesService {
     await Promise.all(operations);
   }
 
-  private getDefaultFeaturesForPlan(plan: string): Array<{ module: FeatureModule; enabled: boolean }> {
-    const coreFeatures = [
-      { module: 'CLIENTS_BASIC' as FeatureModule, enabled: true },
-      { module: 'LOANS_BASIC' as FeatureModule, enabled: true },
-      { module: 'PAYMENTS_BASIC' as FeatureModule, enabled: true },
-      { module: 'ROUTES_BASIC' as FeatureModule, enabled: true },
-    ];
+  private getDefaultFeaturesForPlan(_plan: string): Array<{ module: FeatureModule; enabled: boolean }> {
+    // All features start disabled — SUPER_ADMIN enables per tenant
+    const allFeatures: FeatureModule[] = [
+      'CLIENTS_BASIC', 'LOANS_BASIC', 'PAYMENTS_BASIC', 'ROUTES_BASIC',
+      'EXPENSES', 'REPORTS_ADVANCED', 'USERS_MANAGEMENT', 'API_REST',
+      'EXPORT_EXCEL', 'CONCEPTS_CUSTOM', 'REFINANCING', 'ROLES_PERMISSIONS',
+      'WHITE_LABEL', 'CUSTOM_DOMAIN', 'WEBHOOKS', 'SSO',
+      'AUDIT_LOGS', 'CUSTOM_REPORTS', 'INVESTMENTS',
+    ] as FeatureModule[];
 
-    const advancedFeatures = [
-      { module: 'EXPENSES' as FeatureModule, enabled: plan !== 'BASIC' },
-      { module: 'REPORTS_ADVANCED' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'USERS_MANAGEMENT' as FeatureModule, enabled: plan !== 'BASIC' },
-      { module: 'API_REST' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'EXPORT_EXCEL' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'CONCEPTS_CUSTOM' as FeatureModule, enabled: plan !== 'BASIC' },
-      { module: 'REFINANCING' as FeatureModule, enabled: plan !== 'BASIC' },
-    ];
-
-    const enterpriseFeatures = [
-      { module: 'WHITE_LABEL' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'CUSTOM_DOMAIN' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'WEBHOOKS' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'SSO' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'AUDIT_LOGS' as FeatureModule, enabled: plan === 'ENTERPRISE' },
-      { module: 'CUSTOM_REPORTS' as FeatureModule, enabled: false }, // Premium feature
-      { module: 'ROLES_PERMISSIONS' as FeatureModule, enabled: plan === 'ENTERPRISE' },
-    ];
-
-    return [...coreFeatures, ...advancedFeatures, ...enterpriseFeatures];
+    return allFeatures.map(module => ({ module, enabled: false }));
   }
 
   async isFeatureEnabled(tenantId: string, feature: FeatureModule): Promise<boolean> {

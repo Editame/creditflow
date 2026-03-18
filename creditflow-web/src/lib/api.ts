@@ -1,8 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 import type { 
-  ApiResponse,
-  PaginatedResponse,
   LoginDto, 
   AuthResponse,
   User,

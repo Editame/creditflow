@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import {
   ArrowLeft,
@@ -50,7 +49,6 @@ interface CashMovement {
 
 export default function CapitalPage() {
   const router = useRouter();
-  const { user } = useAuth();
   const { success, error: showError } = useToast();
 
   const [registers, setRegisters] = useState<CashRegister[]>([]);

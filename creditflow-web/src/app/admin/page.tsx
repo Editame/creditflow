@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Building2, Users, Crown, Key, AlertTriangle, Edit, Trash2, Eye, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -261,73 +260,61 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Panel de Administración SaaS
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Bienvenido, {user?.fullName || user?.username} - {ROLE_LABELS[user?.role as UserRole] || user?.role}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Crown className="text-yellow-500" size={24} />
-          <span className="text-sm font-medium text-gray-700">SUPER ADMIN</span>
-        </div>
+      <div>
+        <h1 className="text-xl lg:text-3xl font-bold text-gray-900">Panel de Administración</h1>
+        <p className="text-xs lg:text-sm text-gray-600 mt-1">
+          {user?.fullName || user?.username} · {ROLE_LABELS[user?.role as UserRole] || user?.role}
+        </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         {adminStats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} padding="md">
+            <div key={stat.label} className="bg-white rounded-xl p-3 lg:p-5 border border-gray-100 shadow-sm">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <div className="min-w-0">
+                  <p className="text-[11px] lg:text-sm text-gray-500 truncate">{stat.label}</p>
+                  <p className="text-lg lg:text-2xl font-bold text-gray-900 mt-0.5">{stat.value}</p>
                 </div>
-                <div className={`p-3 rounded-lg ${stat.bg}`}>
-                  <Icon className={stat.color} size={24} />
+                <div className={`p-2 lg:p-3 rounded-lg ${stat.bg} flex-shrink-0 ml-2`}>
+                  <Icon className={`${stat.color} w-4 h-4 lg:w-5 lg:h-5`} />
                 </div>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acciones Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Building2 className="text-primary-600" size={20} />
-              <span className="font-medium text-gray-900">Nueva Empresa</span>
-            </button>
-            <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <Key className="text-primary-600" size={20} />
-              <span className="font-medium text-gray-900">Generar Licencia</span>
-            </button>
-            <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <Users className="text-primary-600" size={20} />
-              <span className="font-medium text-gray-900">Gestionar Usuarios</span>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 lg:p-6">
+        <h3 className="text-sm lg:text-lg font-semibold text-gray-900 mb-3 px-1">Acciones Rápidas</h3>
+        <div className="grid grid-cols-3 gap-2 lg:gap-4">
+          <button onClick={() => setShowCreateForm(true)}
+            className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 p-3 lg:p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+            <Building2 className="text-yellow-600 w-5 h-5" />
+            <span className="text-[10px] lg:text-sm font-medium text-gray-900 text-center">Nueva Empresa</span>
+          </button>
+          <button className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 p-3 lg:p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+            <Key className="text-yellow-600 w-5 h-5" />
+            <span className="text-[10px] lg:text-sm font-medium text-gray-900 text-center">Licencia</span>
+          </button>
+          <button className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 p-3 lg:p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+            <Users className="text-yellow-600 w-5 h-5" />
+            <span className="text-[10px] lg:text-sm font-medium text-gray-900 text-center">Usuarios</span>
+          </button>
+        </div>
+      </div>
 
-      {/* Tenants Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Empresas Registradas</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {/* Tenants - Table on desktop, Cards on mobile */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="px-4 lg:px-6 py-3 lg:py-4 border-b border-gray-100">
+          <h3 className="text-sm lg:text-lg font-semibold text-gray-900">Empresas Registradas</h3>
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden lg:block">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -422,8 +409,44 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="lg:hidden divide-y divide-gray-100">
+          {Array.isArray(tenants) && tenants.map((tenant) => (
+            <div key={tenant.id} className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="font-medium text-gray-900 text-sm">{tenant.name}</p>
+                  <p className="text-[11px] text-gray-500">{tenant.slug}</p>
+                </div>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                  tenant.plan === 'ENTERPRISE' ? 'bg-purple-100 text-purple-800' :
+                  tenant.plan === 'PROFESSIONAL' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>{tenant.plan}</span>
+              </div>
+              <div className="flex items-center gap-3 text-[11px] text-gray-500 mb-3">
+                <span>{tenant._count?.users || 0}/{tenant.maxUsers} usuarios</span>
+                <span>{tenant._count?.clients || 0}/{tenant.maxClients} clientes</span>
+                <span className={tenant.active ? 'text-green-600' : 'text-red-600'}>
+                  {tenant.active ? 'Activo' : 'Inactivo'}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => handleViewTenant(tenant)} className="p-2 bg-blue-50 rounded-lg text-blue-600"><Eye size={14} /></button>
+                <button onClick={() => window.location.href = `/admin/tenants/${tenant.id}/features`} className="p-2 bg-purple-50 rounded-lg text-purple-600"><Settings size={14} /></button>
+                <button onClick={() => window.location.href = `/admin/tenants/${tenant.id}/license`} className="p-2 bg-green-50 rounded-lg text-green-600"><Key size={14} /></button>
+                <button onClick={() => handleEditTenant(tenant)} className="p-2 bg-yellow-50 rounded-lg text-yellow-600"><Edit size={14} /></button>
+                <button onClick={() => setConfirmModal({ show: true, tenant })} className="p-2 bg-red-50 rounded-lg text-red-600"><Trash2 size={14} /></button>
+              </div>
+            </div>
+          ))}
+          {(!Array.isArray(tenants) || tenants.length === 0) && (
+            <div className="p-8 text-center text-gray-500 text-sm">No hay empresas registradas</div>
+          )}
+        </div>
+      </div>
 
       {/* Create Tenant Modal */}
       {showCreateForm && (
@@ -879,32 +902,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* System Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Estado del Sistema</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Sistema operativo</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Base de datos conectada</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>API funcionando</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>Modo: Multi-Tenant SaaS</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

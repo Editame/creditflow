@@ -116,11 +116,6 @@ export class AdminService {
       data: mappedData
     });
 
-    // Si cambió el plan, reinicializar features
-    if (updateTenantDto.plan && updateTenantDto.plan !== tenant.plan) {
-      await this.featuresService.initializeTenantFeatures(id, updateTenantDto.plan);
-    }
-
     return updated;
   }
 
