@@ -147,11 +147,9 @@ export default function DashboardPage() {
   const quickActions = [
     { icon: Users, label: 'Nuevo Cliente', href: '/dashboard/clientes/nuevo', feature: 'CLIENTS_BASIC', from: 'from-blue-50', to: 'to-blue-100', border: 'border-blue-200', color: 'text-blue-600', textColor: 'text-blue-800' },
     { icon: CreditCard, label: 'Nuevo Préstamo', href: '/dashboard/prestamos/nuevo', feature: 'LOANS_BASIC', from: 'from-green-50', to: 'to-green-100', border: 'border-green-200', color: 'text-green-600', textColor: 'text-green-800' },
-    { icon: MapPin, label: 'Nueva Ruta', href: '/dashboard/rutas/nueva', feature: 'ROUTES_BASIC', from: 'from-purple-50', to: 'to-purple-100', border: 'border-purple-200', color: 'text-purple-600', textColor: 'text-purple-800' },
     { icon: DollarSign, label: 'Registrar Pago', href: '/dashboard/pagos', feature: 'PAYMENTS_BASIC', from: 'from-emerald-50', to: 'to-emerald-100', border: 'border-emerald-200', color: 'text-emerald-600', textColor: 'text-emerald-800' },
     { icon: Receipt, label: 'Nuevo Gasto', href: '/dashboard/gastos', feature: 'EXPENSES', from: 'from-orange-50', to: 'to-orange-100', border: 'border-orange-200', color: 'text-orange-600', textColor: 'text-orange-800' },
     { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes', feature: 'REPORTS_ADVANCED', from: 'from-indigo-50', to: 'to-indigo-100', border: 'border-indigo-200', color: 'text-indigo-600', textColor: 'text-indigo-800' },
-    { icon: Calendar, label: 'Cobranza del Día', href: '/dashboard/cobranza', feature: 'PAYMENTS_BASIC', from: 'from-teal-50', to: 'to-teal-100', border: 'border-teal-200', color: 'text-teal-600', textColor: 'text-teal-800' },
   ];
 
   const visibleActions = quickActions.filter(a => hasFeature(a.feature));

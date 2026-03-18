@@ -5,14 +5,12 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Users, 
-  MapPin, 
   CreditCard, 
   DollarSign, 
   Receipt,
   LogOut,
   Menu,
   X,
-  Calendar,
   BarChart3,
   Building2
 } from 'lucide-react';
@@ -28,12 +26,10 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: MapPin, label: 'Rutas', href: '/dashboard/rutas', feature: 'ROUTES_BASIC' },
   { icon: Users, label: 'Clientes', href: '/dashboard/clientes', feature: 'CLIENTS_BASIC' },
   { icon: CreditCard, label: 'Préstamos', href: '/dashboard/prestamos', feature: 'LOANS_BASIC' },
   { icon: DollarSign, label: 'Pagos', href: '/dashboard/pagos', feature: 'PAYMENTS_BASIC' },
   { icon: Receipt, label: 'Gastos', href: '/dashboard/gastos', feature: 'EXPENSES' },
-  { icon: Calendar, label: 'Cobranza', href: '/dashboard/cobranza', feature: 'PAYMENTS_BASIC' },
   { icon: BarChart3, label: 'Reportes', href: '/dashboard/reportes', feature: 'REPORTS_ADVANCED' },
 ];
 
