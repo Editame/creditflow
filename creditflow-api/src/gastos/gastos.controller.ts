@@ -3,6 +3,7 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { GastosService } from './gastos.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { RequireFeature } from '../common/decorators/require-feature.decorator';
 import { CurrentTenant } from '../common';
 import type { CreateGastoDto, FilterGastoDto } from '@creditflow/shared-types';
 
@@ -10,6 +11,7 @@ import type { CreateGastoDto, FilterGastoDto } from '@creditflow/shared-types';
 @Controller('gastos')
 @UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
+@RequireFeature('EXPENSES')
 export class GastosController {
   constructor(private readonly gastosService: GastosService) {}
 
