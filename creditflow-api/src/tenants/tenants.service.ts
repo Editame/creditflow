@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { FeaturesService } from '../features/features.service';
 import type { CreateTenantDto, UpdateTenantDto } from '@creditflow/shared-types';
 
 @Injectable()
 export class TenantsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private featuresService: FeaturesService,
+  ) {}
 
   async create(createTenantDto: CreateTenantDto) {
     const existing = await this.prisma.tenant.findUnique({
@@ -15,13 +19,17 @@ export class TenantsService {
       throw new ConflictException('Tenant slug already exists');
     }
 
-    return this.prisma.tenant.create({
+    const tenant = await this.prisma.tenant.create({
       data: {
         name: createTenantDto.name,
         slug: createTenantDto.slug,
         plan: createTenantDto.plan,
       },
     });
+
+    await this.featuresService.initializeTenantFeatures(tenant.id, tenant.plan);
+
+    return tenant;
   }
 
   async findAll() {
