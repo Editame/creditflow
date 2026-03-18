@@ -41,10 +41,12 @@ export default function NuevoPrestamoPage() {
   const today = getTodayString();
 
   const [formData, setFormData] = useState({
+    modalidad: 'interes' as 'interes' | 'cuotas',
     montoPrestado: '',
     tasaInteres: '',
-    frecuenciaPago: 'DIARIO',
+    frecuenciaPago: 'DAILY',
     valorCuota: '',
+    numeroCuotas: '',
     fechaInicio: today,
     fechaFin: getDefaultFechaFin(today),
   });
@@ -103,8 +105,33 @@ export default function NuevoPrestamoPage() {
 
   const calculateMontoTotal = () => {
     const monto = parseFloat(formData.montoPrestado) || 0;
+    if (formData.modalidad === 'cuotas') {
+      const cuotas = parseInt(formData.numeroCuotas) || 0;
+      const valorCuota = parseFloat(formData.valorCuota) || 0;
+      return cuotas * valorCuota;
+    }
     const interes = parseFloat(formData.tasaInteres) || 0;
     return monto * (1 + interes / 100);
+  };
+
+  const getDaysPerPeriod = (freq: string) => {
+    switch (freq) {
+      case 'DAILY': return 1;
+      case 'WEEKLY': return 7;
+      case 'BIWEEKLY': return 15;
+      case 'MONTHLY': return 30;
+      default: return 1;
+    }
+  };
+
+  const getFrequencyLabel = (freq: string) => {
+    switch (freq) {
+      case 'DAILY': return 'días';
+      case 'WEEKLY': return 'semanas';
+      case 'BIWEEKLY': return 'quincenas';
+      case 'MONTHLY': return 'meses';
+      default: return 'períodos';
+    }
   };
 
   const calculateNumeroPeriodos = () => {
@@ -113,12 +140,7 @@ export default function NuevoPrestamoPage() {
     const fin = new Date(formData.fechaFin);
     const diffTime = fin.getTime() - inicio.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (formData.frecuenciaPago === 'DIARIO') {
-      return Math.max(1, diffDays);
-    } else {
-      return Math.max(1, Math.ceil(diffDays / 7));
-    }
+    return Math.max(1, Math.ceil(diffDays / getDaysPerPeriod(formData.frecuenciaPago)));
   };
 
   const calculateValorCuotaFromFechas = () => {
@@ -133,13 +155,24 @@ export default function NuevoPrestamoPage() {
   };
 
   useEffect(() => {
-    if (formData.montoPrestado && formData.fechaInicio && formData.fechaFin) {
-      const cuotaCalculada = calculateValorCuotaFromFechas();
-      if (cuotaCalculada > 0) {
-        setFormData(prev => ({ ...prev, valorCuota: cuotaCalculada.toString() }));
+    if (formData.modalidad === 'interes') {
+      if (formData.montoPrestado && formData.fechaInicio && formData.fechaFin) {
+        const cuotaCalculada = calculateValorCuotaFromFechas();
+        if (cuotaCalculada > 0) {
+          setFormData(prev => ({ ...prev, valorCuota: cuotaCalculada.toString() }));
+        }
+      }
+    } else {
+      // Modalidad cuotas: calcular fecha fin según número de cuotas
+      const numCuotas = parseInt(formData.numeroCuotas) || 0;
+      if (numCuotas > 0 && formData.fechaInicio) {
+        const inicio = new Date(formData.fechaInicio);
+      const dias = numCuotas * getDaysPerPeriod(formData.frecuenciaPago);
+        const fin = new Date(inicio.getTime() + dias * 24 * 60 * 60 * 1000);
+        setFormData(prev => ({ ...prev, fechaFin: fin.toISOString().split('T')[0] }));
       }
     }
-  }, [formData.fechaInicio, formData.fechaFin, formData.montoPrestado, formData.tasaInteres, formData.frecuenciaPago]);
+  }, [formData.fechaInicio, formData.fechaFin, formData.montoPrestado, formData.tasaInteres, formData.frecuenciaPago, formData.modalidad, formData.numeroCuotas, formData.valorCuota]);
 
   const toggleConcepto = (conceptoId: number, porcentaje: number) => {
     setSelectedConceptos(prev => {
@@ -171,12 +204,24 @@ export default function NuevoPrestamoPage() {
 
     try {
       const monto = parseFloat(formData.montoPrestado);
+      let interestRate: number;
+      let installmentValue: number;
+
+      if (formData.modalidad === 'cuotas') {
+        installmentValue = parseFloat(formData.valorCuota);
+        const total = parseInt(formData.numeroCuotas) * installmentValue;
+        interestRate = ((total - monto) / monto) * 100;
+      } else {
+        interestRate = parseFloat(formData.tasaInteres);
+        installmentValue = parseFloat(formData.valorCuota);
+      }
+
       await loansApi.create({
         clientId: selectedCliente.id,
         loanAmount: monto,
-        interestRate: parseFloat(formData.tasaInteres),
-        paymentFrequency: formData.frecuenciaPago as 'DAILY' | 'WEEKLY',
-        installmentValue: parseFloat(formData.valorCuota),
+        interestRate,
+        paymentFrequency: formData.frecuenciaPago as 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY',
+        installmentValue,
         disbursementDate: formData.fechaInicio,
         endDate: formData.fechaFin,
         discountConcepts: selectedConceptos.map(c => ({
@@ -255,6 +300,35 @@ export default function NuevoPrestamoPage() {
             </div>
           )}
 
+          {/* Modalidad */}
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Modalidad del Préstamo</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, modalidad: 'interes' })}
+                className={`py-3 rounded-xl font-medium transition-colors ${
+                  formData.modalidad === 'interes'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                }`}
+              >
+                <Percent className="w-4 h-4 inline mr-1" /> Por Interés
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, modalidad: 'cuotas' })}
+                className={`py-3 rounded-xl font-medium transition-colors ${
+                  formData.modalidad === 'cuotas'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                }`}
+              >
+                <Calculator className="w-4 h-4 inline mr-1" /> Por Cuotas
+              </button>
+            </div>
+          </div>
+
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <DollarSign className="w-4 h-4 inline mr-2" />
@@ -271,113 +345,188 @@ export default function NuevoPrestamoPage() {
             />
           </div>
 
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Percent className="w-4 h-4 inline mr-2" />
-              Tasa de Interés (%)
-            </label>
-            <input
-              type="number"
-              value={formData.tasaInteres}
-              onChange={(e) => setFormData({ ...formData, tasaInteres: e.target.value })}
-              placeholder="20"
-              required
-              min="0"
-              max="100"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
-            />
-          </div>
+          {formData.modalidad === 'interes' ? (
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Percent className="w-4 h-4 inline mr-2" />
+                Tasa de Interés (%)
+              </label>
+              <input
+                type="number"
+                value={formData.tasaInteres}
+                onChange={(e) => setFormData({ ...formData, tasaInteres: e.target.value })}
+                placeholder="20"
+                required
+                min="0"
+                max="100"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="bg-white rounded-xl p-4 shadow-sm">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calculator className="w-4 h-4 inline mr-2" />
+                  Número de Cuotas
+                </label>
+                <input
+                  type="number"
+                  value={formData.numeroCuotas}
+                  onChange={(e) => setFormData({ ...formData, numeroCuotas: e.target.value })}
+                  placeholder="Ej: 5, 10, 30..."
+                  required
+                  min="1"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                />
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-sm">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <DollarSign className="w-4 h-4 inline mr-2" />
+                  Valor de cada Cuota
+                </label>
+                <input
+                  type="number"
+                  value={formData.valorCuota}
+                  onChange={(e) => setFormData({ ...formData, valorCuota: e.target.value })}
+                  placeholder="0"
+                  required
+                  min="1"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-xl font-semibold placeholder-gray-400 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                />
+                {formData.montoPrestado && formData.numeroCuotas && formData.valorCuota && (
+                  <div className="mt-2 p-2 bg-purple-50 rounded-lg">
+                    <p className="text-xs text-purple-700 text-center">
+                      Total a pagar: <span className="font-bold">${(parseInt(formData.numeroCuotas) * parseFloat(formData.valorCuota)).toLocaleString()}</span>
+                      {' • '}
+                      Ganancia: <span className="font-bold">${((parseInt(formData.numeroCuotas) * parseFloat(formData.valorCuota)) - parseFloat(formData.montoPrestado)).toLocaleString()}</span>
+                      {' • '}
+                      Interés equiv: <span className="font-bold">{((((parseInt(formData.numeroCuotas) * parseFloat(formData.valorCuota)) / parseFloat(formData.montoPrestado)) - 1) * 100).toFixed(1)}%</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Calendar className="w-4 h-4 inline mr-2" />
               Frecuencia de Pago
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {['DIARIO', 'SEMANAL'].map((freq) => (
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { value: 'DAILY', label: 'Diario' },
+                { value: 'WEEKLY', label: 'Semanal' },
+                { value: 'BIWEEKLY', label: 'Quincenal' },
+                { value: 'MONTHLY', label: 'Mensual' },
+              ].map((freq) => (
                 <button
-                  key={freq}
+                  key={freq.value}
                   type="button"
-                  onClick={() => setFormData({ ...formData, frecuenciaPago: freq })}
-                  className={`py-3 rounded-xl font-medium transition-colors ${
-                    formData.frecuenciaPago === freq
+                  onClick={() => setFormData({ ...formData, frecuenciaPago: freq.value })}
+                  className={`py-3 rounded-xl text-sm font-medium transition-colors ${
+                    formData.frecuenciaPago === freq.value
                       ? 'bg-purple-600 text-white'
                       : 'bg-gray-100 text-gray-700 active:bg-gray-200'
                   }`}
                 >
-                  {freq === 'DIARIO' ? 'Diario' : 'Semanal'}
+                  {freq.label}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-700">
-                <Calculator className="w-4 h-4 inline mr-2" />
-                Valor de la Cuota
-              </label>
-              <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
-                Auto-calculado
-              </span>
+          {formData.modalidad === 'interes' && (
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700">
+                  <Calculator className="w-4 h-4 inline mr-2" />
+                  Valor de la Cuota
+                </label>
+                <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                  Auto-calculado
+                </span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                <input
+                  type="number"
+                  value={formData.valorCuota}
+                  onChange={(e) => setFormData({ ...formData, valorCuota: e.target.value })}
+                  placeholder="0"
+                  required
+                  min="1"
+                  className="w-full pl-8 pr-4 py-3 bg-purple-50 border border-purple-200 rounded-xl text-gray-900 text-lg font-semibold placeholder-gray-400 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Calculado según el período y monto. Puedes ajustarlo manualmente.
+              </p>
             </div>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
-              <input
-                type="number"
-                value={formData.valorCuota}
-                onChange={(e) => setFormData({ ...formData, valorCuota: e.target.value })}
-                placeholder="0"
-                required
-                min="1"
-                className="w-full pl-8 pr-4 py-3 bg-purple-50 border border-purple-200 rounded-xl text-gray-900 text-lg font-semibold placeholder-gray-400 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Calculado según el período y monto. Puedes ajustarlo manualmente.
-            </p>
-          </div>
+          )}
 
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-2" />
-              Período del Préstamo
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Fecha Inicio</label>
-                <DateInput
-                  value={formData.fechaInicio}
-                  onChange={(newFechaInicio) => {
-                    const oldInicio = new Date(formData.fechaInicio);
-                    const oldFin = new Date(formData.fechaFin);
-                    const duracion = oldFin.getTime() - oldInicio.getTime();
-                    const newFin = new Date(new Date(newFechaInicio).getTime() + duracion);
-                    setFormData({
-                      ...formData,
-                      fechaInicio: newFechaInicio,
-                      fechaFin: newFin.toISOString().split('T')[0]
-                    });
-                  }}
-                  required
-                  className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
-                />
+          {formData.modalidad === 'interes' && (
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-2" />
+                Período del Préstamo
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Fecha Inicio</label>
+                  <DateInput
+                    value={formData.fechaInicio}
+                    onChange={(newFechaInicio) => {
+                      const oldInicio = new Date(formData.fechaInicio);
+                      const oldFin = new Date(formData.fechaFin);
+                      const duracion = oldFin.getTime() - oldInicio.getTime();
+                      const newFin = new Date(new Date(newFechaInicio).getTime() + duracion);
+                      setFormData({
+                        ...formData,
+                        fechaInicio: newFechaInicio,
+                        fechaFin: newFin.toISOString().split('T')[0]
+                      });
+                    }}
+                    required
+                    className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Fecha Fin</label>
+                  <DateInput
+                    value={formData.fechaFin}
+                    min={formData.fechaInicio}
+                    onChange={(value) => setFormData({ ...formData, fechaFin: value })}
+                    required
+                    className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Fecha Fin</label>
-                <DateInput
-                  value={formData.fechaFin}
-                  min={formData.fechaInicio}
-                  onChange={(value) => setFormData({ ...formData, fechaFin: value })}
-                  required
-                  className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
-                />
-              </div>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                {calculateNumeroPeriodos()} {getFrequencyLabel(formData.frecuenciaPago)}
+              </p>
             </div>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              {calculateNumeroPeriodos()} {formData.frecuenciaPago === 'DIARIO' ? 'días' : 'semanas'}
-            </p>
-          </div>
+          )}
+
+          {formData.modalidad === 'cuotas' && (
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-2" />
+                Fecha de Inicio
+              </label>
+              <DateInput
+                value={formData.fechaInicio}
+                onChange={(value) => setFormData({ ...formData, fechaInicio: value })}
+                required
+                className="w-full px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+              />
+              {formData.numeroCuotas && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Fecha fin estimada: {new Date(formData.fechaFin).toLocaleDateString('es-ES')}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
@@ -523,7 +672,11 @@ export default function NuevoPrestamoPage() {
                 )}
                 
                 <div className="flex justify-between">
-                  <span className="text-purple-700">Interés ({formData.tasaInteres}%):</span>
+                  <span className="text-purple-700">
+                    {formData.modalidad === 'interes' 
+                      ? `Interés (${formData.tasaInteres}%):` 
+                      : 'Ganancia:'}
+                  </span>
                   <span className="font-semibold text-purple-900">
                     ${(calculateMontoTotal() - parseFloat(formData.montoPrestado)).toLocaleString()}
                   </span>
@@ -537,7 +690,10 @@ export default function NuevoPrestamoPage() {
                 <div className="flex justify-between">
                   <span className="text-purple-700">Número de cuotas:</span>
                   <span className="font-semibold text-purple-900">
-                    {calculateNumeroCuotas()} {formData.frecuenciaPago === 'DIARIO' ? 'días' : 'semanas'}
+                    {formData.modalidad === 'cuotas' 
+                      ? `${formData.numeroCuotas} ${getFrequencyLabel(formData.frecuenciaPago)}`
+                      : `${calculateNumeroCuotas()} ${getFrequencyLabel(formData.frecuenciaPago)}`
+                    }
                   </span>
                 </div>
                 
