@@ -15,7 +15,8 @@ import {
   Crown,
   UserCheck,
   Route,
-  Lock
+  Lock,
+  Wallet
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -38,6 +39,17 @@ export default function GestionPage() {
   }, [user, router]);
 
   const gestionModules = [
+    {
+      title: 'Capital / Caja',
+      description: 'Control de capital y movimientos',
+      icon: Wallet,
+      href: '/dashboard/gestion/capital',
+      color: 'bg-emerald-500',
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
+      count: null,
+      available: true
+    },
     {
       title: 'Usuarios',
       description: 'Gestionar usuarios del tenant',

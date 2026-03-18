@@ -1,14 +1,19 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
 import { LoanStatus } from '@creditflow/shared-types';
 import type { CreatePaymentDto, FilterPaymentDto } from '@creditflow/shared-types';
 import { getTodayRangeInTimezone, getDateRangeInTimezone, getTodayString, getTodayInTimezone, aplicaCobroHoy, calculatePeriodsElapsed } from '../common/helpers/date.helper';
 import { calculateLoanEndDate, calculateRemainingQuotas } from '../common/helpers/loan.helper';
+import { CashService } from '../cash/cash.service';
 
 @Injectable()
 export class PagosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => CashService))
+    private cashService: CashService,
+  ) {}
 
   async create(tenantId: string, userId: number, createPaymentDto: CreatePaymentDto) {
     const loan = await this.prisma.loan.findFirst({
@@ -35,7 +40,7 @@ export class PagosService {
       throw new BadRequestException('Invalid loan configuration: installmentValue must be greater than 0');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const payment = await tx.payment.create({
         data: {
           tenantId,
@@ -79,6 +84,13 @@ export class PagosService {
 
       return payment;
     });
+
+    // Auto-movement: cash in
+    try {
+      await this.cashService.recordPaymentReceived(tenantId, result.id, createPaymentDto.loanId, paymentAmount, loan.client.routeId, userId);
+    } catch (e) { /* no cash register yet */ }
+
+    return result;
   }
 
   async findAll(tenantId: string, filters: FilterPaymentDto) {

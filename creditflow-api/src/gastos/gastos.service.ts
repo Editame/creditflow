@@ -1,11 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { createPaginatedResponse, getPaginationParams } from '../common';
 import type { CreateExpenseDto, FilterExpenseDto } from '@creditflow/shared-types';
+import { CashService } from '../cash/cash.service';
 
 @Injectable()
 export class GastosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => CashService))
+    private cashService: CashService,
+  ) {}
 
   async create(tenantId: string, createExpenseDto: CreateExpenseDto) {
     const ruta = await this.prisma.route.findFirst({
@@ -16,7 +21,7 @@ export class GastosService {
       throw new NotFoundException('Route not found');
     }
 
-    return this.prisma.expense.create({
+    const expense = await this.prisma.expense.create({
       data: {
         tenantId,
         routeId: createExpenseDto.routeId,
@@ -26,6 +31,13 @@ export class GastosService {
         date: createExpenseDto.date ? new Date(createExpenseDto.date) : new Date(),
       },
     });
+
+    // Auto-movement: cash out
+    try {
+      await this.cashService.recordExpense(tenantId, expense.id, createExpenseDto.amount, createExpenseDto.routeId);
+    } catch (e) { /* no cash register yet */ }
+
+    return expense;
   }
 
   async findAll(tenantId: string, filters: FilterExpenseDto) {

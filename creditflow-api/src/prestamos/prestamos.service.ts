@@ -4,6 +4,7 @@ import { createPaginatedResponse, getPaginationParams } from '../common';
 import { PaymentFrequency, LoanStatus } from '@creditflow/shared-types';
 import type { CreateLoanDto, FilterLoanDto, RefinanceLoanDto } from '@creditflow/shared-types';
 import { ChargeConceptsService } from '../charge-concepts/charge-concepts.service';
+import { CashService } from '../cash/cash.service';
 import { addDaysToDate, calculatePeriodsElapsed } from '../common/helpers/date.helper';
 
 @Injectable()
@@ -12,6 +13,8 @@ export class PrestamosService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => ChargeConceptsService))
     private chargeConceptsService: ChargeConceptsService,
+    @Inject(forwardRef(() => CashService))
+    private cashService: CashService,
   ) {}
 
   async create(tenantId: string, createLoanDto: CreateLoanDto) {
@@ -63,7 +66,7 @@ export class PrestamosService {
       endDate = this.calculateEndDate(collectionStartDate, periods, createLoanDto.paymentFrequency as PaymentFrequency);
     }
 
-    return this.prisma.loan.create({
+    const loan = await this.prisma.loan.create({
       data: {
         tenantId,
         clientId: createLoanDto.clientId,
@@ -90,6 +93,16 @@ export class PrestamosService {
         costs: { include: { concept: true } },
       },
     });
+
+    // Auto-movement: cash out
+    try {
+      const client = await this.prisma.client.findUnique({ where: { id: createLoanDto.clientId }, select: { routeId: true } });
+      if (client) {
+        await this.cashService.recordLoanDisbursement(tenantId, loan.id, disbursedAmount, client.routeId);
+      }
+    } catch (e) { /* no cash register yet — skip */ }
+
+    return loan;
   }
 
   async findAll(tenantId: string, filters: FilterLoanDto) {

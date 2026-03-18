@@ -261,6 +261,38 @@ class ApiClient {
     },
   };
 
+  // Cash / Capital
+  cash = {
+    getRegisters: async (): Promise<any[]> => {
+      const { data } = await this.client.get('/cash/registers');
+      return data.data || data;
+    },
+    createRegister: async (dto: { name: string; routeId?: number }): Promise<any> => {
+      const { data } = await this.client.post('/cash/registers', dto);
+      return data.data || data;
+    },
+    getRegisterSummary: async (id: number): Promise<any> => {
+      const { data } = await this.client.get(`/cash/registers/${id}/summary`);
+      return data.data || data;
+    },
+    getConcepts: async (): Promise<any[]> => {
+      const { data } = await this.client.get('/cash/concepts');
+      return data.data || data;
+    },
+    createConcept: async (dto: { name: string; type: 'IN' | 'OUT'; description?: string }): Promise<any> => {
+      const { data } = await this.client.post('/cash/concepts', dto);
+      return data.data || data;
+    },
+    getMovements: async (filters?: any): Promise<any[]> => {
+      const { data } = await this.client.get('/cash/movements', { params: filters });
+      return data.data?.data || data.data || [];
+    },
+    createMovement: async (dto: { cashRegisterId: number; conceptId: number; amount: number; description?: string }): Promise<any> => {
+      const { data } = await this.client.post('/cash/movements', dto);
+      return data.data || data;
+    },
+  };
+
   // Dashboard
   dashboard = {
     getSummary: async (): Promise<any> => {

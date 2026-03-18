@@ -20,6 +20,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ReportsModule } from './reports/reports.module';
 import { FeaturesModule } from './features/features.module';
+import { CashModule } from './cash/cash.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { FeaturesModule } from './features/features.module';
     DashboardModule,
     ReportsModule,
     FeaturesModule,
+    CashModule,
     RutasModule,
     ClientesModule,
     PrestamosModule,

@@ -63,6 +63,11 @@ export enum SubscriptionStatus {
   TRIALING = 'TRIALING',
 }
 
+export enum CashMovementType {
+  IN = 'IN',
+  OUT = 'OUT',
+}
+
 // Legacy aliases for backward compatibility
 export const FrecuenciaPago = PaymentFrequency;
 export const EstadoPrestamo = LoanStatus;

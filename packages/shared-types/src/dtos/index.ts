@@ -109,7 +109,7 @@ export interface CreateLoanDto {
   clientId: number;
   loanAmount: number;
   interestRate: number;
-  paymentFrequency: 'DAILY' | 'WEEKLY';
+  paymentFrequency: 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
   installmentValue?: number;
   disbursementDate: string;
   collectionStartDate?: string;
@@ -129,7 +129,7 @@ export interface CreateLoanDto {
 export interface RefinanceLoanDto {
   newAmount: number;
   interestRate: number;
-  paymentFrequency: 'DAILY' | 'WEEKLY';
+  paymentFrequency: 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
   installmentValue?: number;
   disbursementDate: string;
   collectionStartDate?: string;
@@ -197,6 +197,35 @@ export interface UpdateChargeConceptDto {
   isCalculated?: boolean;
   description?: string;
   active?: boolean;
+}
+
+// ============================================
+// CASH / CAPITAL DTOs
+// ============================================
+
+export interface CreateCashRegisterDto {
+  name: string;
+  routeId?: number; // null = global
+}
+
+export interface CreateCashMovementConceptDto {
+  name: string;
+  type: 'IN' | 'OUT';
+  description?: string;
+}
+
+export interface CreateCashMovementDto {
+  cashRegisterId: number;
+  conceptId: number;
+  amount: number;
+  description?: string;
+}
+
+export interface FilterCashMovementDto extends PaginationParams {
+  cashRegisterId?: number;
+  type?: 'IN' | 'OUT';
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 // ============================================
